@@ -1,7 +1,7 @@
 from itertools import product
 from numpy import matrix, sum as nsum, zeros, argmin
 from numpy.linalg import eigh
-from operators import SingleParticleBasis, AnnihilationOperator
+from operators import SingleParticleBasis, AnnihilationOperator, SuperpositionState
 from util import diracDelta, dot
 
 class Hamiltonian(SingleParticleBasis):
@@ -13,11 +13,23 @@ class Hamiltonian(SingleParticleBasis):
 
     def getGroundStateAlgebraically(self):
         ind = argmin(self.eigenEnergies)
-        return self.getStateAlgebraically(self.eigenStates[:, ind])
+        psi0 = SuperpositionState(self.eigenStates[:, ind], self.singleParticleBasis)
+        return psi0.getStateAlgebraically()
 
     def getGroundState(self):
         ind = argmin(self.eigenEnergies)
         return self.eigenStates[:, ind]
+
+    def getSpectrum(self):
+        degeneracies = list()
+        energies = list()
+        for e in self.eigenEnergies:
+            if e in energies:
+                degeneracies[energies.index(e)] += 1
+            else:
+                degeneracies.append(1)
+                energies.append(e)
+        return energies, degeneracies
 
 class Hubbard(Hamiltonian):
     def __init__(self, t, u):
