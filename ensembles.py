@@ -1,12 +1,13 @@
 from itertools import product
 from numpy import trace, exp, sum as nsum, identity
 from operators import AnnihilationOperator
-from util import scalar
+from util import dot
 
 class CanonicalEnsemble(object):
     def __init__(self, hamiltonian, beta):
         self.hamiltonian = hamiltonian
         self.singleParticleBasis = hamiltonian.singleParticleBasis
+        self.orderedSingleParticleStates = hamiltonian.orderedSingleParticleStates
         self.partitionFunction = None
         self.beta = beta
         self.energyEigenstates = None
@@ -18,7 +19,10 @@ class CanonicalEnsemble(object):
         e = self.getEnergyEigenvalues()
         ve = self.getEnergyEigenstates()
         inds = range(len(ve))
-        return nsum([exp(-self.beta*e[n])*scalar(ve[n],c[orbital].H,ve[m])*scalar(ve[m],c[orbital],ve[n]) for m, n in product(inds, inds)]) / z
+        return nsum([exp(-self.beta*e[n])*dot(ve[:,n],c[orbital].H,ve[:,m])*dot(ve[:,m],c[orbital],ve[:,n]) for m, n in product(inds, inds)]) / z
+
+    def totalOccupation(self):
+        return nsum([self.occupation(*orb) for orb in self.orderedSingleParticleStates])
 
     def calcPartitionFunction(self):
         self.partitionFunction = nsum([exp(-self.beta*eva) for eva in self.getEnergyEigenvalues()])
@@ -52,4 +56,5 @@ class CanonicalEnsemble(object):
 class GrandcanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian, beta, mu):
         CanonicalEnsemble.__init__(self, hamiltonian, beta)
-        self.hamiltonian.matrix -= mu * identity(len(self.hamiltonian.matrix))
+        c = AnnihilationOperator(self.singleParticleBasis)
+        self.hamiltonian.matrix -= mu * nsum([dot(c[orb].H, c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
