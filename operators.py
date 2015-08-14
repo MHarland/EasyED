@@ -1,5 +1,5 @@
 from itertools import product
-from numpy import matrix, sum as nsum, binary_repr
+from numpy import matrix, sum as nsum, binary_repr, dot, zeros, identity, sqrt
 from util import diracDelta
 
 class SingleParticleBasis(object):
@@ -55,17 +55,12 @@ class SuperpositionState(SingleParticleBasis):
     def getState(self):
         """Fockspace superposition vector."""
         c = AnnihilationOperator(self.singleParticleBasis)
-        matrix = None
+        stateMatrix = zeros([c.fockspaceSize, c.fockspaceSize])
         for i, coeff in enumerate(self.coefficients):
             ibin = binary_repr(i, width = self.nrOfSingleParticleStates)
-            matrixToAdd = None
+            matrixToAdd = identity(c.fockspaceSize)
             for j, digit in enumerate(ibin):
-                if digit == '1' and not matrixToAdd:
-                    matrixToAdd = c(*self.orderedSingleParticleStates[j]).H
-                elif digit == '1':
-                    matrixToAdd = dot(matrixToAdd, c(*self.orderedSingleParticleStates[j]).H)
-            if not matrix:
-                matrix = coeff * matrixToAdd.copy()
-            else:
-                matrix += coeff * matrixToAdd
-        return matrix
+                if digit == '1':
+                    matrixToAdd = dot(matrixToAdd, c[self.orderedSingleParticleStates[j]].H)
+            stateMatrix += coeff * matrixToAdd
+        return matrix(stateMatrix)

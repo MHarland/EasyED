@@ -5,9 +5,15 @@ from operators import SingleParticleBasis, AnnihilationOperator, SuperpositionSt
 from util import diracDelta, dot
 
 class Hamiltonian(SingleParticleBasis):
-    def solve(self):
-        self.eigenEnergies, self.eigenStates = eigh(self.h)
+    def __init__(self, singleParticleBasis, matrix):
+        self.matrix = matrix
+        SingleParticleBasis.__init__(self, singleParticleBasis)
+        self.eigenEnergies = None
+        self.eigenStates = None
 
+    def solve(self):
+        self.eigenEnergies, self.eigenStates = eigh(self.matrix)
+    """
     def getGroundStateEnergy(self):
         return min(self.eigenEnergies)
 
@@ -18,8 +24,9 @@ class Hamiltonian(SingleParticleBasis):
 
     def getGroundState(self):
         ind = argmin(self.eigenEnergies)
-        return self.eigenStates[:, ind]
-
+        psi0 = SuperpositionState(self.eigenStates[:, ind], self.singleParticleBasis)
+        return psi0.getState()
+    """
     def getSpectrum(self):
         degeneracies = list()
         energies = list()
@@ -37,8 +44,8 @@ class Hubbard(Hamiltonian):
         self.u = u
         self.spins = ['up', 'dn']
         self.sites = range(len(t))
-        self.h = setHubbardMatrix(self.t, self.u, self.spins, self.sites)
-        Hamiltonian.__init__(self, [self.spins, self.sites])
+        hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites)
+        Hamiltonian.__init__(self, [self.spins, self.sites], hubbardMatrix)
 
 def setHubbardMatrix(t, u, spins, sites):
     c = AnnihilationOperator([spins, sites])
