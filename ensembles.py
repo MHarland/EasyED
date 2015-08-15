@@ -1,7 +1,7 @@
 from itertools import product
 from numpy import trace, exp, sum as nsum, identity
 from operators import AnnihilationOperator
-from util import dot
+from util import dot, scatter_list, sumScatteredLists
 
 class CanonicalEnsemble(object):
     def __init__(self, hamiltonian, beta):
@@ -19,7 +19,10 @@ class CanonicalEnsemble(object):
         e = self.getEnergyEigenvalues()
         ve = self.getEnergyEigenstates()
         inds = range(len(ve))
-        return nsum([exp(-self.beta*e[n])*dot(ve[:,n],c[orbital].H,ve[:,m])*dot(ve[:,m],c[orbital],ve[:,n]) for m, n in product(inds, inds)]) / z
+        inds = [(m, n) for m, n in product(inds, inds)]
+        inds_p = scatter_list(inds)
+        terms_p = [exp(-self.beta*e[n])*dot(ve[:,n],c[orbital].H,ve[:,m])*dot(ve[:,m],c[orbital],ve[:,n]) for m, n in inds_p]
+        return sumScatteredLists(terms_p) / z
 
     def totalOccupation(self):
         return nsum([self.occupation(*orb) for orb in self.orderedSingleParticleStates])
