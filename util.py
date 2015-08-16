@@ -42,6 +42,9 @@ def mpiSum(x):
     return mpi.COMM_WORLD.allreduce(x)
 
 def sumScatteredLists(x):
-    x = allgather_list(x)
-    return nsum(x)
+    return nsum(allgather_list(x))
     #return mpiSum(x)
+
+def report(s, verbose):
+    if mpi.COMM_WORLD.Get_rank() == 0 and verbose:
+        print s

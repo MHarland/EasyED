@@ -49,7 +49,9 @@ class Hubbard(Hamiltonian):
 
 def setHubbardMatrix(t, u, spins, sites):
     c = AnnihilationOperator([spins, sites])
+    s1 = spins[0]
+    s2 = spins[1]
     ht = [t[i,j] * dot(c[s,i].H, c[s,j]) for s in spins for i,j in product(sites, sites)]
-    hu = [.5 * u * diracDelta(s1, s2) * dot(c[s1,i].H, c[s1,i], c[s2,i].H, c[s2,i]) for i in sites for s1,s2 in product(spins, spins)]
+    hu = [u * dot(c[s1,i].H, c[s1,i], c[s2,i].H, c[s2,i]) for i in sites]
     return nsum(ht + hu, axis = 0)
     
