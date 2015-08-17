@@ -1,5 +1,7 @@
 from itertools import product
-from numpy import matrix, sum as nsum, binary_repr, dot, zeros, identity, sqrt
+from numpy import matrix, sum as nsum, binary_repr, dot, zeros, identity, sqrt, bitwise_xor
+
+from blocks import BlockMatrix
 from util import diracDelta
 
 class SingleParticleBasis(object):
@@ -9,22 +11,43 @@ class SingleParticleBasis(object):
         self.nrOfSingleParticleStates = len(self.orderedSingleParticleStates)
         self.fockspaceSize = 2**self.nrOfSingleParticleStates
 
-class AnnihilationOperator(SingleParticleBasis):
-    """Fermionic"""
-    def __getitem__(self, spState):
-        """The single particle state is given by a tuple of quantum numbers."""
-        return matrix([[self.element(spState, i, j) for j in range(self.fockspaceSize)] for i in range(self.fockspaceSize)])
+    def getState(self, fockspaceNr):
+        statestr = str()
+        binCode = binary_repr(fockspaceNr, width = self.nrOfSingleParticleStates)
+        for i, digit in enumerate(binCode):
+            if digit == '1':
+                statstr += ' c^'+str(self.orderedSingleParticleStates[j])
+        return statestr
 
-    def spsNr(self, *spState):
+    def getSingleParticleStateNr(self, *spState):
         """Single particle state number."""
-        for i, qnt in enumerate(self.orderedSingleParticleStates):
-            if qnt == spState:
-                return i
-        assert False, 'Single particle state number to state '+str(spState)+' not found.'
+        return self.orderedSingleParticleStates.index(spState)
 
-    def fsNr(self, *occupationOfSingleParticleStates):
+    def getFockspaceNr(self, *occupationOfSingleParticleStates):
         """Fock state number."""
         return nsum([occ*2**i for i, occ in enumerate(occupationOfSingleParticleStates)])
+
+    def getBinaryRep(self, fockspaceNr):
+        return binary_repr(fockspaceNr)
+
+class AnnihilationOperator(SingleParticleBasis):
+    """Fermionic"""
+    def __init__(self, singleParticleBasis, sortNSubspaces = True):
+        SingleParticleBasis.__init__(self, singleParticleBasis)
+        if sortNSubspaces:
+            self.sortN = True
+            nEigenvalues = list()
+            fockspaceIndices = range(self.fockspaceSize)
+            for fockind in fockspaceIndices:
+                nEigenvalues.append(nsum([1 for digit in binary_repr(fockind) if digit == '1']))
+
+    def __getitem__(self, spState):
+        """The single particle state is given by a tuple of quantum numbers. If sortNSubspaces, then it returns a list of blocks, i.e. an array of matrices"""
+        spsnr = self.getSingleParticleStateNr(*spState)
+        targetStates = bitwise_xor([range(self.fockspaceSize)], 2**spsnr)
+        signs = [(-1)**nsum([diracDelta('1', binary_repr(k)) for k in range(spsnr)])]
+        
+        return 
 
     def element(self, spState, i, j):
         jbin = binary_repr(j, width = len(self.orderedSingleParticleStates))[::-1]
@@ -37,7 +60,7 @@ class SuperpositionState(SingleParticleBasis):
         SingleParticleBasis.__init__(self, spbasis)
         self.coefficients = coefficients
 
-    def getStateAlgebraically(self, thres = 10**(-12)):
+    def getState(self, thres = 10**(-12)):
         """Fockspace superposition vector."""
         statestr = str()
         for i, coeff in enumerate(self.coefficients):
@@ -46,13 +69,10 @@ class SuperpositionState(SingleParticleBasis):
                     statestr += ' + '
                 statestr += str(coeff)
                 spstates = list()
-                ibin = binary_repr(i, width = self.nrOfSingleParticleStates)
-                for j, digit in enumerate(ibin):
-                    if digit == '1':
-                        statestr += ' c^'+str(self.orderedSingleParticleStates[j])
+                statestr += self.getState(i)
         return statestr
 
-    def getState(self):
+    def getMatrix(self):
         """Fockspace superposition vector."""
         c = AnnihilationOperator(self.singleParticleBasis)
         stateMatrix = zeros([c.fockspaceSize, c.fockspaceSize])
