@@ -29,3 +29,8 @@ print
 y = bdot(x,z)
 for block in y:
     print block
+print
+
+x.setFullMatrixEntry(2,3,7)
+for block in x:
+    print block

@@ -16,8 +16,11 @@ class SingleParticleBasis(object):
         binCode = binary_repr(fockspaceNr, width = self.nrOfSingleParticleStates)
         for i, digit in enumerate(binCode):
             if digit == '1':
-                statstr += ' c^'+str(self.orderedSingleParticleStates[j])
+                statestr += ' c^'+str(self.orderedSingleParticleStates[i])
         return statestr
+
+    def getSingleParticleBasis(self):
+        return self.singleParticleBasis
 
     def getSingleParticleStateNr(self, *spState):
         """Single particle state number."""
@@ -28,7 +31,7 @@ class SingleParticleBasis(object):
         return nsum([occ*2**i for i, occ in enumerate(occupationOfSingleParticleStates)])
 
     def getBinaryRep(self, fockspaceNr):
-        return binary_repr(fockspaceNr)
+        return binary_repr(fockspaceNr, width = len(self.orderedSingleParticleStates))[::-1]
 
 class AnnihilationOperator(SingleParticleBasis):
     """Fermionic"""
@@ -36,18 +39,39 @@ class AnnihilationOperator(SingleParticleBasis):
         SingleParticleBasis.__init__(self, singleParticleBasis)
         if sortNSubspaces:
             self.sortN = True
-            nEigenvalues = list()
-            fockspaceIndices = range(self.fockspaceSize)
-            for fockind in fockspaceIndices:
-                nEigenvalues.append(nsum([1 for digit in binary_repr(fockind) if digit == '1']))
+            self.blocksizes = list()
+            self.sortByN = list()
+            nEigenvalues = [nsum([1 for digit in self.getBinaryRep(fockind) if digit == '1']) for fockind in range(self.fockspaceSize)]
+            found = list()
+            for fockspaceNr, n in enumerate(nEigenvalues):
+                if n in found:
+                    self.sortByN[found.index(n)].append(fockspaceNr)
+                else:
+                    self.sortByN.append(list())
+                    found.append(n)
+                    self.sortByN[-1].append(fockspaceNr)
+            self.blocksizes = [len(block) for block in self.sortByN]
+            self.sortByN = [n for blockn in self.sortByN for n in blockn]
 
     def __getitem__(self, spState):
-        """The single particle state is given by a tuple of quantum numbers. If sortNSubspaces, then it returns a list of blocks, i.e. an array of matrices"""
+        """The single particle state is given by a tuple of quantum numbers. If sortNSubspaces, then it returns a list of blocks, i.e. a list of 2D arrays"""
         spsnr = self.getSingleParticleStateNr(*spState)
-        targetStates = bitwise_xor([range(self.fockspaceSize)], 2**spsnr)
-        signs = [(-1)**nsum([diracDelta('1', binary_repr(k)) for k in range(spsnr)])]
-        
-        return 
+        targetStates = list(bitwise_xor([range(self.fockspaceSize)], 2**spsnr)[0]) # array better
+        signs = [(-1)**nsum([diracDelta('1', self.getBinaryRep(k)) for k in range(spsnr)])]# replace diracD by if after range
+        print 'ttt', signs
+        targetStatesT = self.nBlockTransformation(targetStates)
+        signsT = self.nBlockTransformation(signs)
+        instatesT = self.nBlockTransformation(range(self.fockspaceSize))
+        matrix = BlockMatrix(self.blocksizes)
+        for j, targetState, sign in zip(instatesT, targetStatesT, signsT):
+            matrix.setFullMatrixEntry(targetState, j, sign)
+        return matrix
+
+    def nBlockTransformation(self, states):
+        return [states[j] for j in self.sortByN]
+
+    def nBlockBackTransformation(self, states):
+        return [states[states.index(j)] for j in self.sortByN]
 
     def element(self, spState, i, j):
         jbin = binary_repr(j, width = len(self.orderedSingleParticleStates))[::-1]
