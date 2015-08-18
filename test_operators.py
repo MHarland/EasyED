@@ -6,21 +6,24 @@ from operators import SingleParticleBasis, AnnihilationOperator
 
 inds = [['u', 'd'], [0, 1]]
 basis =  SingleParticleBasis(inds)
-print basis.getState(5)
 print basis.getSingleParticleBasis()
-print basis.getSingleParticleStateNr('d', 0)
-print basis.getFockspaceNr(0,0,1,0)
-print basis.getBinaryRep(4)
+print basis.orderedSingleParticleStates
+print 'u0 d0 d1:'
+print basis.getState(13)
+print basis.getFockspaceNr((1,0,1,1))
+print basis.getOccupationRep(13)
+print 'up1:'
+print basis.getFockspaceNr((0,1,0,0))
+print basis.getSingleParticleStateNr('u', 1)
+print basis.getOccupationRep(2)
+print 'all single particle states:'
+for sps in basis.orderedSingleParticleStates:
+    print basis.getFockspaceNr(singleParticleState = sps)
+print
 
-
-c = AnnihilationOperator([['up', 'dn'], range(2)])
+c = AnnihilationOperator([['u', 'd'], range(2)])
 print c.orderedSingleParticleStates
-print c.blocksizes
-print c.sortByN
-print c['dn', 1]
-#
-#print c.element(('d', 'a'), 8, 12)
-#print dot(c['u', 'a'].H, c['u', 'a'])
-#n_tot = nsum([dot(c[s, i].H, c[s, i]) for s, i in product(['u', 'd'], ['a', 'b'])], axis = 0)
-#print trace(dot(c['u', 'a'].H, c['u', 'a']))
-
+print c['u', 1].toarray()
+print
+print c['u', 1].transpose().dot(c['u', 1]).toarray()
+print nsum([c[s, i].transpose().dot(c[s, i]) for s, i in product(['u', 'd'], range(2))], axis = 0)

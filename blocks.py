@@ -12,17 +12,22 @@ class Blocks(object):
         for block in self.datablocks:
             yield block
 
+    def show(self):
+        for block in self.datablocks:
+            print block
+
 class BlockMatrix(Blocks):
     def setFullMatrixEntry(self, i, j, x):
         blockNr = 0
         blockrow = 0
         blockcol = 0
         origin = 0
-        temp = 1
-        while temp < i:
-            blockNr += 1
+        temp = self.blocksizes[0]
+        while temp <= i:
             origin += self.blocksizes[blockNr]
             temp += self.blocksizes[blockNr+1]
+            blockNr += 1
+        assert origin <= i < temp and origin <= j < temp, 'Cannot set values outside the blocks.'
         while origin + blockrow < i:
             blockrow += 1
         while origin + blockcol < j:
