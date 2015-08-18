@@ -61,23 +61,6 @@ class SingleParticleBasis(object):
 
 class AnnihilationOperator(SingleParticleBasis):
     """Fermionic"""
-    def __init__(self, singleParticleBasis, sortNSubspaces = False):
-        SingleParticleBasis.__init__(self, singleParticleBasis)
-        if sortNSubspaces: #TODO: move!
-            self.sortN = True
-            self.blocksizes = list()
-            self.sortByN = list()
-            nEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockind) if digit == '1']) for fockind in range(self.fockspaceSize)]
-            found = list()
-            for fockspaceNr, n in enumerate(nEigenvalues):
-                if n in found:
-                    self.sortByN[found.index(n)].append(fockspaceNr)
-                else:
-                    self.sortByN.append(list())
-                    found.append(n)
-                    self.sortByN[-1].append(fockspaceNr)
-            self.blocksizes = [len(block) for block in self.sortByN]
-            self.sortByN = Permutation([n for blockn in self.sortByN for n in blockn])
 
     def __getitem__(self, spState):
         """The single particle state is given by a tuple of quantum numbers. Returns scipy.sparse.coo_matrix"""
@@ -98,7 +81,6 @@ class SuperpositionState(SingleParticleBasis): #TODO: think!
         self.coefficients = coefficients
 
     def getState(self, thres = 10**(-12)):
-        """Fockspace superposition vector."""
         statestr = str()
         for i, coeff in enumerate(self.coefficients):
             if abs(coeff) > thres:
@@ -110,7 +92,6 @@ class SuperpositionState(SingleParticleBasis): #TODO: think!
         return statestr
 
     def getMatrix(self):
-        """Fockspace superposition vector."""
         c = AnnihilationOperator(self.singleParticleBasis)
         stateMatrix = zeros([c.fockspaceSize, c.fockspaceSize])
         for i, coeff in enumerate(self.coefficients):
