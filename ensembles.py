@@ -70,11 +70,13 @@ class CanonicalEnsemble(object):
         self.energyEigenstates = self.hamiltonian.eigenStates
         self.energyEigenvalues = self.hamiltonian.eigenEnergies
 
+"""    use canonical with mu in H
 class GrandcanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian, beta, mu):
         CanonicalEnsemble.__init__(self, hamiltonian, beta)
         c = AnnihilationOperator(self.singleParticleBasis)
         self.hamiltonian.matrix -= mu * nsum([dot(c[orb].H, c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
+"""
 
 class MicrocanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian):
