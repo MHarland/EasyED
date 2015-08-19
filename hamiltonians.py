@@ -1,5 +1,5 @@
 from itertools import product
-from numpy import array, sum as nsum, zeros, argmin
+from numpy import array, sum as nsum, zeros, argmin, identity
 from scipy.linalg import eigh
 from scipy.sparse import coo_matrix
 from operators import SingleParticleBasis, AnnihilationOperator
@@ -13,10 +13,10 @@ class Hamiltonian(SingleParticleBasis):
         self.eigenStates = None
         self.blocksizes = [self.fockspaceSize]
         self.sortN = None
+        self.fockBasis = range(self.fockspaceSize)
         self.sortNSubspace()
 
     def sortNSubspace(self):
-        self.blocksizes = list()
         self.sortN = list()
         nEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockind) if digit == '1']) for fockind in range(self.fockspaceSize)]
         found = list()
@@ -28,12 +28,9 @@ class Hamiltonian(SingleParticleBasis):
                 found.append(n)
                 self.sortN[-1].append(fockspaceNr)
         self.blocksizes = [len(block) for block in self.sortN]
-        self.sortN = [n for blockn in self.sortN for n in blockn]
-        self.sortN = coo_matrix(([1]*len(self.sortN), (self.sortN, range(len(self.sortN)))), [self.fockspaceSize]*2)
-        self.matrix = self.sortN.transpose().dot(self.matrix).dot(self.sortN)
-
-    def sortNsSubspace(self):
-        pass
+        self.fockBasis = [n for blockn in self.sortN for n in blockn]
+        self.sortN = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
+        self.matrix = self.sortN.dot(self.matrix).dot(self.sortN.transpose())
 
     def solve(self):
         self.eigenEnergies, self.eigenStates = eigh(self.matrix)
@@ -64,6 +61,7 @@ class Hamiltonian(SingleParticleBasis):
 
 class Hubbard(Hamiltonian):
     def __init__(self, t, u, siteSpaceTransformation = None, mu = 0):
+        self.sortNs = list()
         self.t = array(t) - identity(len(t)) * mu
         self.u = u
         self.spins = ['up', 'dn']
@@ -71,6 +69,32 @@ class Hubbard(Hamiltonian):
         self.siteSpaceTransformation = siteSpaceTransformation
         hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites, siteSpaceTransformation)
         Hamiltonian.__init__(self, [self.spins, self.sites], hubbardMatrix)
+        self.sortNsSubspace()
+
+    def sortNsSubspace(self):
+        self.sortNs = list()
+        nUpEigenvalues = [nsum([1 for digit in self.getOccupationRep(self.fockBasis[fockind])[:int(self.nrOfSingleParticleStates*.5)] if digit == '1']) for fockind in range(self.fockspaceSize)]
+        fockstate = 0 # in present basis(most probably N-sorted), eigenvalues evaluated in original basis before
+        for blocklength in self.blocksizes:
+            found = list()
+            sortNsInBlock = list()
+            firstBlockEntryNr = fockstate
+            for ns in nUpEigenvalues[firstBlockEntryNr:firstBlockEntryNr+blocklength]:
+                if ns in found:
+                    sortNsInBlock[found.index(ns)].append(fockstate)
+                else:
+                    sortNsInBlock.append(list())
+                    found.append(ns)
+                    sortNsInBlock[-1].append(fockstate)
+                fockstate += 1
+            self.sortNs += sortNsInBlock
+        self.blocksizes = [len(block) for block in self.sortNs]
+        self.fockBasis = [n for blockn in self.sortNs for n in blockn]
+        self.sortNs = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
+        self.matrix = self.sortNs.dot(self.matrix).dot(self.sortNs.transpose())
+
+    def solve(self):
+        Hamiltonian.solve(self)
 
 def setHubbardMatrix(t, u, spins, orbitals, siteSpaceTransformation):
     spins = range(len(spins))

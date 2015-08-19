@@ -6,7 +6,8 @@ import numpy
 numpy.set_printoptions(suppress=True)
 dimer = Hubbard([[0, -1], [-1, 0]], 1)
 print dimer.matrix.toarray()
-print
+print 'blocks:', dimer.blocksizes
+
 dimer = Hubbard([[0, -1], [-1, 0]], 2)
 print dimer.matrix.toarray()
 print
