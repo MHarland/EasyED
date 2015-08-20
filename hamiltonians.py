@@ -1,7 +1,9 @@
-from itertools import product
-from numpy import array, sum as nsum, zeros, argmin, identity
+from itertools import product, izip
+from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix
 from scipy.linalg import eigh
 from scipy.sparse import coo_matrix
+
+from blocks import BlockMatrix
 from operators import SingleParticleBasis, AnnihilationOperator
 from util import diracDelta, dot
 
@@ -31,9 +33,26 @@ class Hamiltonian(SingleParticleBasis):
         self.fockBasis = [n for blockn in self.sortN for n in blockn]
         self.sortN = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
         self.matrix = self.sortN.dot(self.matrix).dot(self.sortN.transpose())
-
+    """
     def solve(self):
-        self.eigenEnergies, self.eigenStates = eigh(self.matrix)
+        self.eigenEnergies = list()
+        self.eigenStates = list()
+        hBlocks = BlockMatrix(self.blocksizes)
+        rows, cols = self.matrix.nonzero()
+        for val, i, j in izip(self.matrix.data, rows, cols):
+            hBlocks.setFullMatrixEntry(i, j, val)
+        hBlocks.show()
+        for block in hBlocks:
+            e, v = eigh(block)
+            self.eigenEnergies += list(e)
+            self.eigenStates += list(v)
+        print self.eigenEnergies
+        print self.eigenStates
+    """
+    def solve(self):
+        self.eigenEnergies, self.eigenStates = eigh(asmatrix(self.matrix.toarray()))
+        print self.eigenEnergies
+        print self.eigenStates
     """
     def getGroundStateEnergy(self):
         return min(self.eigenEnergies)

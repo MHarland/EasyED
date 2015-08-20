@@ -27,15 +27,45 @@ y = bdot(x,z)
 y.show()
 print
 
-x.setFullMatrixEntry(2,3,7)
-x.setFullMatrixEntry(1,1,7)
-x.setFullMatrixEntry(0,1,7)
-x.setFullMatrixEntry(4,4,7)
-x.setFullMatrixEntry(3,3,7)
-x.setFullMatrixEntry(3,2,7)
-x.setFullMatrixEntry(0,0,7)
-x.setFullMatrixEntry(1,0,7)
-x.setFullMatrixEntry(2,2,7)
+x[2,3]=7
+x[1,1]=7
+x[0,1]=7
+x[4,4]=7
+x[3,3]=7
+x[3,2]=7
+x[0,0]=7
+x[1,0]=7
+x[2,2]=7
 x.show()
-
-x.setFullMatrixEntry(0,2,7) #error
+print x[2,2]
+print
+print x.getBlock(1)
+print
+print 'state:'
+y = BlockState([2,2,1])
+y[0] = 1
+y[1] = 1
+y[2] = 1
+y[3] = 5
+y[4] = 1
+y.show()
+print y[3]
+print
+print 'z from bdot:'
+x.show()
+print
+y.show()
+print
+z = x.bdot(y)
+z.show()
+print
+z = bdot(x,y)
+z.show()
+print 'a vector as result of leftmul:'
+z = bdot(y,x)
+z.show()
+print 'for matrix:'
+z = bdot(x,x)
+z.show()
+print 'error on purpose:'
+x[0,2]=7 #error

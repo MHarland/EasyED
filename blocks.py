@@ -1,23 +1,23 @@
 from itertools import izip, product
-from numpy import zeros, dot as ndot
+from numpy import zeros, dot as ndot, asmatrix, sum as nsum
 
 class Blocks(object):
     def __init__(self, blocksizes):
         self.datablocks = list()
         self.blocksizes = blocksizes
-        for size in blocksizes:
-            self.datablocks.append(zeros([size, size]))
 
     def __iter__(self):
         for block in self.datablocks:
             yield block
 
+    def __getitem__(self, x):
+        return self.datablocks[x]
+
     def show(self):
         for block in self.datablocks:
             print block
 
-class BlockMatrix(Blocks):
-    def setFullMatrixEntry(self, i, j, x):
+    def getBlockCoords(self, i, j = None):
         blockNr = 0
         blockrow = 0
         blockcol = 0
@@ -27,24 +27,62 @@ class BlockMatrix(Blocks):
             origin += self.blocksizes[blockNr]
             temp += self.blocksizes[blockNr+1]
             blockNr += 1
-        assert origin <= i < temp and origin <= j < temp, 'Cannot set values outside the blocks.'
         while origin + blockrow < i:
             blockrow += 1
-        while origin + blockcol < j:
-            blockcol += 1
-        self.datablocks[blockNr][blockrow, blockcol] = x
+        if j != None:
+            assert origin <= i < temp and origin <= j < temp, 'Cannot access values outside the blocks.'
+            while origin + blockcol < j:
+                blockcol += 1
+            return blockNr, blockrow, blockcol
+        else:
+            return blockNr, blockrow
+
+    def getBlock(self, blockNr):
+        return self.datablocks[blockNr]
+
+class BlockMatrix(Blocks):
+    def __init__(self, blocksizes):
+        Blocks.__init__(self, blocksizes)
+        for size in blocksizes:
+            self.datablocks.append(asmatrix(zeros([size, size])))
+        self.shape = [nsum(blocksizes)]*2
+
+    def __setitem__(self, key, item):
+        blockNr, blockrow, blockcol = self.getBlockCoords(*key)
+        self.datablocks[blockNr][blockrow, blockcol] = item
+
+    def __getitem__(self, key):
+        blockNr, blockrow, blockcol = self.getBlockCoords(*key)
+        return self.datablocks[blockNr][blockrow, blockcol]
+
+    def bdot(self, y):
+        return bdot(self, y)
 
 class BlockState(Blocks):
     def __init__(self, blocksizes):
-        self.datablocks = list()
-        self.blocksizes = blocksizes
+        Blocks.__init__(self, blocksizes)
         for size in blocksizes:
-            self.datablocks.append(zeros([size]))    
+            self.datablocks.append(zeros([size]))
+        self.shape = [nsum(blocksizes)]
+
+    def __setitem__(self, key, item):
+        blockNr, blockrow = self.getBlockCoords(key)
+        self.datablocks[blockNr][blockrow] = item
+
+    def __getitem__(self, key):
+        blockNr, blockrow = self.getBlockCoords(key)
+        return self.datablocks[blockNr][blockrow]
+
+    def bdot(self, y):
+        return bdot(self, y)
 
 def bdot(x, y):
-    result = BlockMatrix(x.blocksizes)
+    if len(x.shape) == 2:
+        result = BlockMatrix(x.blocksizes)
+    else:
+        result = BlockState(x.blocksizes)
     i = 0
     for xblock, yblock in izip(x, y):
         result.datablocks[i] = ndot(xblock, yblock)
-        i += 1
+        i+= 1
     return result
