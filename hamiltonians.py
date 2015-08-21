@@ -56,13 +56,6 @@ class Hamiltonian(SingleParticleBasis):
         v = allgather_list(v_scat)
         self.eigenStates = embedV(v, self.blocksizes)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
-
-    """
-    def solve(self):
-        self.eigenEnergies, self.eigenStates = eigh(asmatrix(self.matrix.toarray()))
-        print self.eigenEnergies
-        print self.eigenStates
-    """
     """
     def getGroundStateEnergy(self):
         return min(self.eigenEnergies)

@@ -8,8 +8,8 @@ from util import report
 numpy.set_printoptions(suppress=True)
 #structure = Hubbard([[0, -1], [-1, 0]], 2)
 t = -1.
-structure = Hubbard([[0,t,t,t],[t,0,t,t],[t,t,0,t],[t,t,t,0]], 2)
-report(structure.matrix.toarray())
+structure = Hubbard([[0,t,t,t],[t,0,t,t],[t,t,0,t],[t,t,t,0]], 4, mu = 2)
+#report(structure.matrix.toarray())
 #report(structure.blocksizes)
 #print
 #structure = Hubbard([[0, -1], [-1, 0]], 2, 1/sqrt(2) * array([[1,1],[1,-1]]))
@@ -21,6 +21,8 @@ structure.solve()
 #print structure.getGroundStateEnergy()
 #print structure.getGroundStateAlgebraically()
 
-#fig = plt.figure()
-#ax = fig.add_subplot(1from hamiltonians import Hubbard
-#plt.close()
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.scatter(*structure.getSpectrum())
+plt.savefig('testSpectrum.pdf', dpi=300)
+plt.close()
