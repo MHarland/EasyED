@@ -74,13 +74,13 @@ class AnnihilationOperator(SingleParticleBasis):
                 outstates.append(self.getFockspaceNr(annihilateOccRep(spStateOR, instateOR)))
         signs = [(-1)**nsum([1 for k in range(self.getSingleParticleStateNr(*spState)) if self.getOccupationRep(fockstateNr)[k] == '1']) for fockstateNr in instates]
         return coo_matrix((signs, (outstates, instates)), [self.fockspaceSize]*2)
-"""
-class SuperpositionState(SingleParticleBasis): #TODO: think!
+
+class SuperpositionState(SingleParticleBasis):
     def __init__(self, coefficients, spbasis):
         SingleParticleBasis.__init__(self, spbasis)
         self.coefficients = coefficients
 
-    def getState(self, thres = 10**(-12)):
+    def getState(self, thres = .0001):
         statestr = str()
         for i, coeff in enumerate(self.coefficients):
             if abs(coeff) > thres:
@@ -88,9 +88,9 @@ class SuperpositionState(SingleParticleBasis): #TODO: think!
                     statestr += ' + '
                 statestr += str(coeff)
                 spstates = list()
-                statestr += self.getState(i)
+                statestr += SingleParticleBasis.getState(self, i)
         return statestr
-
+    """
     def getMatrix(self):
         c = AnnihilationOperator(self.singleParticleBasis)
         stateMatrix = zeros([c.fockspaceSize, c.fockspaceSize])
@@ -102,7 +102,7 @@ class SuperpositionState(SingleParticleBasis): #TODO: think!
                     matrixToAdd = dot(matrixToAdd, c[self.orderedSingleParticleStates[j]].H)
             stateMatrix += coeff * matrixToAdd
         return matrix(stateMatrix)
-"""
+    """
 def annihilateOccRep(spsToAnnihilate, fockstate):
     newState = str()
     for i, occ in enumerate(fockstate):

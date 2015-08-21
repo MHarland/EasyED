@@ -48,3 +48,16 @@ def sumScatteredLists(x):
 def report(s, verbose = True):
     if mpi.COMM_WORLD.Get_rank() == 0 and verbose:
         print s
+
+def contains(numberList, number, accuracy):
+    for l in numberList:
+        if abs(number - l) < accuracy:
+            return True
+    return False
+
+def getIndex(numberList, number, accuracy):
+    for i, l in enumerate(numberList):
+        if abs(number - l) < accuracy:
+            return i
+    return None
+        

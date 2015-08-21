@@ -5,8 +5,8 @@ from scipy.sparse import coo_matrix
 from time import time
 
 from blocks import BlockMatrix
-from operators import SingleParticleBasis, AnnihilationOperator
-from util import scatter_list, allgather_list, report
+from operators import SingleParticleBasis, AnnihilationOperator, SuperpositionState
+from util import scatter_list, allgather_list, report, contains, getIndex
 
 class Hamiltonian(SingleParticleBasis):
     def __init__(self, singleParticleBasis, matrix, verbose = False):
@@ -17,8 +17,11 @@ class Hamiltonian(SingleParticleBasis):
         self.blocksizes = [self.fockspaceSize]
         self.sortN = None
         self.fockBasis = range(self.fockspaceSize)
-        self.sortNSubspace()
         self.verbose = verbose
+        self.backtransformation = coo_matrix(([1]*self.fockspaceSize,
+                                              (range(self.fockspaceSize),
+                                               range(self.fockspaceSize))))
+        self.sortNSubspace()
 
     def sortNSubspace(self):
         self.sortN = list()
@@ -34,6 +37,7 @@ class Hamiltonian(SingleParticleBasis):
         self.blocksizes = [len(block) for block in self.sortN]
         self.fockBasis = [n for blockn in self.sortN for n in blockn]
         self.sortN = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
+        self.backtransformation = self.sortN.transpose().dot(self.backtransformation)
         self.matrix = self.sortN.dot(self.matrix).dot(self.sortN.transpose())
 
     def solve(self):
@@ -56,26 +60,39 @@ class Hamiltonian(SingleParticleBasis):
         v = allgather_list(v_scat)
         self.eigenStates = embedV(v, self.blocksizes)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
-    """
+
     def getGroundStateEnergy(self):
         return min(self.eigenEnergies)
 
-    def getGroundStateAlgebraically(self):
-        ind = argmin(self.eigenEnergies)
-        psi0 = SuperpositionState(self.eigenStates[:, ind], self.singleParticleBasis)
-        return psi0.getStateAlgebraically()
+    def getGroundSuperpositionState(self, energyResolution = .0001):
+        inds = list()
+        gss = list()
+        for i, e in enumerate(self.eigenEnergies):
+            if abs(e - self.getGroundStateEnergy()) < energyResolution:
+                inds.append(i)
+        for i in inds:
+            psi0 = SuperpositionState(self.backtransformation.dot(self.eigenStates)[:,i], self.singleParticleBasis)
+            gss.append(psi0)
+        return gss
 
-    def getGroundState(self):
-        ind = argmin(self.eigenEnergies)
-        psi0 = SuperpositionState(self.eigenStates[:, ind], self.singleParticleBasis)
-        return psi0.getState()
-    """
-    def getSpectrum(self):
+    def getGroundStatesAlgebraically(self, energyResolution = .0001):
+        groundStates = list()
+        for psi in self.getGroundSuperpositionState(energyResolution):
+            groundStates.append(psi.getState())
+        return groundStates
+
+    def getGroundStates(self, energyResolution = .0001):
+        groundStates = list()
+        for psi in self.getGroundSuperpositionState(energyResolution):
+            groundStates.append(psi.getState())
+        return groundStates
+
+    def getSpectrum(self, energyResolution = .0001):
         degeneracies = list()
         energies = list()
         for e in self.eigenEnergies:
-            if e in energies:
-                degeneracies[energies.index(e)] += 1
+            if contains(energies, e, energyResolution):
+                degeneracies[getIndex(energies, e, energyResolution)] += 1
             else:
                 degeneracies.append(1)
                 energies.append(e)
@@ -117,6 +134,7 @@ class Hubbard(Hamiltonian):
         self.blocksizes = [len(block) for block in self.sortNs]
         self.fockBasis = [n for blockn in self.sortNs for n in blockn]
         self.sortNs = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
+        self.backtransformation = self.sortNs.transpose().dot(self.backtransformation)
         self.matrix = self.sortNs.dot(self.matrix).dot(self.sortNs.transpose())
 
     def solve(self):
