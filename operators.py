@@ -13,7 +13,7 @@ class SingleParticleBasis(object):
         self.nrOfSingleParticleStates = len(self.orderedSingleParticleStates)
         self.fockspaceSize = 2**self.nrOfSingleParticleStates
 
-    def getState(self, fockspaceNr):
+    def getStateAlgebraically(self, fockspaceNr):
         statestr = str()
         for i, digit in enumerate(self.getOccupationRep(fockspaceNr)):
             if digit == '1':
@@ -80,7 +80,7 @@ class SuperpositionState(SingleParticleBasis):
         SingleParticleBasis.__init__(self, spbasis)
         self.coefficients = coefficients
 
-    def getState(self, thres = .0001):
+    def getStateAlgebraically(self, thres = .0001):
         statestr = str()
         for i, coeff in enumerate(self.coefficients):
             if abs(coeff) > thres:
@@ -88,7 +88,7 @@ class SuperpositionState(SingleParticleBasis):
                     statestr += ' + '
                 statestr += str(coeff)
                 spstates = list()
-                statestr += SingleParticleBasis.getState(self, i)
+                statestr += SingleParticleBasis.getStateAlgebraically(self, i)
         return statestr
     """
     def getMatrix(self):
