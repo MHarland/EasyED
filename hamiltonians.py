@@ -70,7 +70,8 @@ class Hamiltonian(SingleParticleBasis):
             v_scat += list(v)
         self.eigenEnergies = diag(self.transformation.H.dot(self.transformation.transpose().dot(diag(allgather_list(e_scat)).transpose()).transpose())) # scipy hack for A = U^.D.U
         v = allgather_list(v_scat)
-        self.eigenStates = self.transformation.H.dot(self.transformation.transpose().dot(embedV(v, self.blocksizes)).transpose()) # scipy hack for A = U^.D.U
+        #self.eigenStates = self.transformation.H.dot(self.transformation.transpose().dot(embedV(v, self.blocksizes)).transpose()) # scipy hack for A = U^.D.U
+        self.eigenStates = self.transformation.H.dot(embedV(v, self.blocksizes)).dot(self.transformation)
         self.matrix = self.transformation.H.dot(self.matrix).dot(self.transformation)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
@@ -84,7 +85,7 @@ class Hamiltonian(SingleParticleBasis):
             if abs(e - self.getGroundStateEnergy()) < energyResolution:
                 inds.append(i)
         for i in inds:
-            psi0 = SuperpositionState(self.transformation.H.toarray().dot(self.eigenStates.transpose())[:, i], self.singleParticleBasis)
+            psi0 = SuperpositionState(self.eigenStates.toarray()[:, i], self.singleParticleBasis)
             gss.append(psi0)
         return gss
 
@@ -169,15 +170,21 @@ def setHubbardMatrixTransf(t, u, spins, orbitals, siteSpaceTransformation = None
     return nsum(ht + hu, axis = 0)
 """
 def embedV(subspaceVectors, blocksizes):
-    assert nsum(blocksizes) == len(subspaceVectors), 'embedding will fail'
+    fockspaceSize = nsum(blocksizes)
+    assert fockspaceSize == len(subspaceVectors), 'embedding will fail'
     iBlock = 0
     iBlockOrigin = 0
-    vectors = zeros([len(subspaceVectors), nsum(blocksizes)])
+    vectors = zeros([len(subspaceVectors), fockspaceSize])
+    x = list()
+    y = list()
+    data = list()
     for i, v in enumerate(subspaceVectors):
-        for j in range(len(v)):
-            #vectors[j + iBlockOrigin, i] = v[j] # one vector per row
-            vectors[i, j + iBlockOrigin] = v[j] # one vector per column
+        for j, vj in enumerate(v):
+            if vj != 0:
+                y.append(j + iBlockOrigin) # TODO understand row/col exchange
+                x.append(i)
+                data.append(vj)
         if i == iBlockOrigin + blocksizes[iBlock] - 1:
             iBlockOrigin += blocksizes[iBlock]
             iBlock += 1
-    return vectors
+    return coo_matrix((data, (x,y)), [fockspaceSize]*2)

@@ -1,5 +1,5 @@
 from itertools import product
-from numpy import trace, exp, sum as nsum, identity, where
+from numpy import trace, exp, sum as nsum, identity, where, array
 from time import time
 from operators import AnnihilationOperator
 from util import scatter_list, sumScatteredLists, report
@@ -20,19 +20,24 @@ class CanonicalEnsemble(object):
     def calcOccupation(self):
         c = AnnihilationOperator(self.singleParticleBasis)
         e = self.getEnergyEigenvalues()
-        ve = self.getEnergyEigenstates()
+        ve = self.getEnergyEigenstates().toarray()
         z = self.getPartitionFunction()
         inds = self.getIndsForSum()
+        fockstates = range(self.fockspaceSize)
 
         report('Calculating Occupation...', self.verbose)
         t0 = time()
         for state in self.orderedSingleParticleStates:
-            c_state_dag = c[state].H
-            inds_p = scatter_list(inds)
+            c_state_dag = c[state].H.toarray()
+            n_inds_p = array(scatter_list(fockstates))
             terms_p = list()
-            for m, n in inds_p:
-                el = ve[:,m].dot(c_state_dag.dot(ve[:,n]))
-                terms_p.append(exp(-self.beta*e[n])*el*el.conjugate())
+            for n in n_inds_p:
+                c_state_dag_n = c_state_dag.dot(ve[:,n])
+                expn = exp(-self.beta*e[n])
+                for m in fockstates:
+                    el = ve[:,m].dot(c_state_dag_n)
+                    if el != 0:
+                        terms_p.append(expn*el*el.conjugate())
             self.occupation.update({state: sumScatteredLists(terms_p)/z})
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
