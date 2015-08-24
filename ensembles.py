@@ -27,10 +27,11 @@ class CanonicalEnsemble(object):
         report('Calculating Occupation...', self.verbose)
         t0 = time()
         for state in self.orderedSingleParticleStates:
+            c_state_dag = c[state].H
             inds_p = scatter_list(inds)
             terms_p = list()
             for m, n in inds_p:
-                el = ve[m,:].dot(c[state].H.dot(ve[n,:]))
+                el = ve[:,m].dot(c_state_dag.dot(ve[:,n]))
                 terms_p.append(exp(-self.beta*e[n])*el*el.conjugate())
             self.occupation.update({state: sumScatteredLists(terms_p)/z})
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
@@ -79,7 +80,8 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian, beta, mu):
         CanonicalEnsemble.__init__(self, hamiltonian, beta)
         c = AnnihilationOperator(self.singleParticleBasis)
-        self.hamiltonian.matrix = self.hamiltonian.matrix - mu * nsum([c[orb].H.dot(c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
+        muMatrix = mu * nsum([c[orb].H.dot(c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
+        self.hamiltonian.matrix = self.hamiltonian.matrix - muMatrix
 
 class MicrocanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian):
