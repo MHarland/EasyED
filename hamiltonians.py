@@ -1,5 +1,5 @@
 from itertools import product, izip
-from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix
+from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix, arange
 from scipy.linalg import eigh
 from scipy.sparse import coo_matrix
 from time import time
@@ -16,16 +16,46 @@ class Hamiltonian(SingleParticleBasis):
         self.eigenStates = None # row vectors are eigenstates
         self.blocksizes = [self.fockspaceSize]
         self.sortN = None
-        self.fockBasis = range(self.fockspaceSize)
         self.verbose = verbose
-        self.backtransformation = coo_matrix(([1]*self.fockspaceSize,
+        self.transformation = coo_matrix(([1]*self.fockspaceSize,
+                                          (range(self.fockspaceSize),
+                                           range(self.fockspaceSize))))
+        self.backTransformation = coo_matrix(([1]*self.fockspaceSize,
                                               (range(self.fockspaceSize),
                                                range(self.fockspaceSize))))
-        #self.sortNSubspace()
 
+    def getNEigenvalues(self):
+        fockstates = arange(self.fockspaceSize)
+        fockstatesTransf = self.transformation.dot(fockstates)
+        nEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockstate) if digit == '1']) for fockstate in fockstatesTransf]
+        return nEigenvalues
+
+    def sortSubspaceByPermutation(self, eigenvalues):
+        print eigenvalues
+        sortedFockstates = list()
+
+        fockstate = 0
+        for blocklength in self.blocksizes:
+            found = list()
+            sortedFockstatesInBlock = list()
+            firstBlockState = fockstate
+            for eigenvalue in eigenvalues[firstBlockState:firstBlockState+blocklength]:
+                if eigenvalue in found:
+                    sortedFockstatesInBlock[found.index(eigenvalue)].append(fockstate)
+                else:
+                    sortedFockstatesInBlock.append(list())
+                    found.append(eigenvalue)
+                    sortedFockstatesInBlock[-1].append(fockstate)
+                fockstate += 1
+            sortedFockstates += sortedFockstatesInBlock
+        transformationMatrix = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), [outState for block in sortedFockstates for outState in block])), [self.fockspaceSize]*2).dot(self.transformation)
+        self.blocksizes = [len(block) for block in sortedFockstates]
+        self.transformation = transformationMatrix.dot(self.transformation)
+        self.backTransformation = transformationMatrix.H.dot(self.backTransformation)
+    """
     def sortNSubspace(self):
         self.sortN = list()
-        nEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockind) if digit == '1']) for fockind in range(self.fockspaceSize)]
+        
         found = list()
         for fockspaceNr, n in enumerate(nEigenvalues):
             if n in found:
@@ -39,12 +69,21 @@ class Hamiltonian(SingleParticleBasis):
         self.sortN = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
         self.backtransformation = self.sortN.transpose().dot(self.backtransformation)
         self.matrix = self.sortN.dot(self.matrix).dot(self.sortN.transpose())
+    """
 
+    def gatherPermutations(self):
+        self.sortSubspaceByPermutation(self.getNEigenvalues())
+        
     def solve(self):
         report('Solving the Hamiltonian...', self.verbose)
         t0 = time()
         self.eigenEnergies = list()
         self.eigenStates = list()
+        self.gatherPermutations()
+        print self.matrix.toarray()
+        print
+        self.matrix = self.transformation.dot(self.matrix).dot(self.transformation.H)
+        print self.matrix.toarray()
         hBlocks = BlockMatrix(self.blocksizes)
         rows, cols = self.matrix.nonzero()
         for val, i, j in izip(self.matrix.data, rows, cols):
@@ -58,7 +97,10 @@ class Hamiltonian(SingleParticleBasis):
             v_scat += list(v)
         self.eigenEnergies = allgather_list(e_scat)
         v = allgather_list(v_scat)
-        self.eigenStates = embedV(v, self.blocksizes)
+        print type(embedV(v, self.blocksizes))
+        print type(self.transformation.H)
+        self.eigenStates = embedV(v, self.blocksizes).dot(self.transformation.H.toarray())
+        self.matrix = self.transformation.H.dot(self.matrix).dot(self.transformation)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getGroundStateEnergy(self):
@@ -71,7 +113,7 @@ class Hamiltonian(SingleParticleBasis):
             if abs(e - self.getGroundStateEnergy()) < energyResolution:
                 inds.append(i)
         for i in inds:
-            psi0 = SuperpositionState(self.backtransformation.toarray().dot(self.eigenStates.transpose())[:, i], self.singleParticleBasis)
+            psi0 = SuperpositionState(self.backTransformation.toarray().dot(self.eigenStates.transpose())[:, i], self.singleParticleBasis)
             gss.append(psi0)
         return gss
 
@@ -112,8 +154,18 @@ class Hubbard(Hamiltonian):
         hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
         Hamiltonian.__init__(self, [self.spins, self.sites], hubbardMatrix, self.verbose)
-        #self.sortNsSubspace()
 
+    def getNsEigenvalues(self):
+        fockstates = arange(self.fockspaceSize)
+        fockstatesTransf = self.transformation.dot(fockstates)
+        nsEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockstate)[:int(self.nrOfSingleParticleStates*.5)] if digit == '1']) for fockstate in fockstates]
+        return nsEigenvalues
+
+    def gatherPermutations(self):
+        Hamiltonian.gatherPermutations(self)
+        self.sortSubspaceByPermutation(self.getNsEigenvalues())
+
+    """
     def sortNsSubspace(self):
         self.sortNs = list()
         nUpEigenvalues = [nsum([1 for digit in self.getOccupationRep(self.fockBasis[fockind])[:int(self.nrOfSingleParticleStates*.5)] if digit == '1']) for fockind in range(self.fockspaceSize)]
@@ -136,7 +188,7 @@ class Hubbard(Hamiltonian):
         self.sortNs = coo_matrix(([1]*self.fockspaceSize, (range(self.fockspaceSize), self.fockBasis)), [self.fockspaceSize]*2)
         self.backtransformation = self.sortNs.transpose().dot(self.backtransformation)
         self.matrix = self.sortNs.dot(self.matrix).dot(self.sortNs.transpose())
-
+    """
     def solve(self):
         Hamiltonian.solve(self)
 

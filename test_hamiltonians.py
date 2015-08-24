@@ -7,7 +7,7 @@ import numpy
 from util import report
 
 numpy.set_printoptions(suppress=True)
-structure = Hubbard([[0, -1], [-1, 0]], 0)
+structure = Hubbard([[0, -1], [-1, 0]], 1)
 #t = -1.
 #structure = Hubbard([[0,t,t,t],[t,0,t,t],[t,t,0,t],[t,t,t,0]], 4, mu = 2)
 #report(structure.matrix.toarray())
