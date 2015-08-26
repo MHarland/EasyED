@@ -14,4 +14,6 @@ print
 heatedStuffedDimer = GrandcanonicalEnsemble(dimerHamilton, 1, .5)
 heatedStuffedDimer.calcOccupation()
 print 'n_grand: ',heatedStuffedDimer.getTotalOccupation()
-
+print
+heatedStuffedDimer.setMu(2, 0, 2)
+print 'Numerical Mu for half-filling is '+str(heatedStuffedDimer.mu)

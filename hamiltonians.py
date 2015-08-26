@@ -1,5 +1,5 @@
 from itertools import product, izip
-from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix, arange, diag
+from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix, arange, diag, min as nmin
 from scipy.linalg import eigh
 from scipy.sparse import coo_matrix
 from time import time
@@ -68,7 +68,7 @@ class Hamiltonian(SingleParticleBasis):
             e, v = eigh(block)
             e_scat += list(e)
             v_scat += list(v)
-        self.eigenEnergies = diag(self.transformation.H.dot(self.transformation.transpose().dot(diag(allgather_list(e_scat)).transpose()).transpose())) # scipy hack for A = U^.D.U
+        self.eigenEnergies = shiftEnergies(diag(self.transformation.H.dot(self.transformation.transpose().dot(diag(allgather_list(e_scat)).transpose()).transpose())).copy()) # scipy hack for A = U^.D.U
         v = allgather_list(v_scat)
         #self.eigenStates = self.transformation.H.dot(self.transformation.transpose().dot(embedV(v, self.blocksizes)).transpose()) # scipy hack for A = U^.D.U
         self.eigenStates = self.transformation.H.dot(embedV(v, self.blocksizes)).dot(self.transformation)
@@ -188,3 +188,10 @@ def embedV(subspaceVectors, blocksizes):
             iBlockOrigin += blocksizes[iBlock]
             iBlock += 1
     return coo_matrix((data, (x,y)), [fockspaceSize]*2)
+
+def shiftEnergies(energies):
+    emin = nmin(energies)
+    if emin < 0:
+        for i in range(len(energies)):
+            energies[i] = energies[i] - emin
+    return energies
