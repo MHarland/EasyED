@@ -15,7 +15,7 @@ class OneParticleGreensFunction(object):
         self.verbose = verbose
 
     def setMesh(self, nOmega, omegaMin, omegaMax):
-        assert omegaMin <= 0 and omegaMax > 0, 'Choose omega range with 0 in it.'
+        assert omegaMin <= 0 and omegaMax > 0, 'Choose omegaMin <= 0 < omegaMax.'
         self.mesh = array([omegaMin + w*(omegaMax-omegaMin)/float(nOmega-1) for w in range(nOmega)])
 
     def getMesh(self):
@@ -25,12 +25,7 @@ class OneParticleGreensFunction(object):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(retarded)...', self.verbose)
         t0 = time()
-        for statePair, nominators, denominators in zip(self.lehmannNominators.keys(), self.lehmannNominators.values(), self.lehmannDenominators.values()):
-            data_p = list()
-            for w in scatter_list(self.mesh):
-                terms = [nom/(w + denom + sign * complex(0, imaginaryOffset)) for noms, denom in zip(nominators, denominators) for nom, sign in zip(noms, [+1, +1])]
-                data_p.append(nsum(terms/self.partitionFunction))
-            self.retardedData.update({statePair: array(allgather_list(data_p))})
+        self.retardedData.update(lehmannSum(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, +1]))
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getRetarded(self, statePair):
@@ -41,7 +36,7 @@ class OneParticleGreensFunction(object):
             return self.retardedData[statePair]
 
     def setMatsubaraMesh(self, nOmega, beta):
-        self.matsubaraMesh = array([(2*n+1)*pi/beta for n in range(nOmega)])
+        self.matsubaraMesh = array([complex(0, 2*n+1)*pi/beta for n in range(nOmega)])
 
     def getMatsubaraMesh(self):
         return self.matsubaraMesh
@@ -50,12 +45,7 @@ class OneParticleGreensFunction(object):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(Matsubara)...', self.verbose)
         t0 = time()
-        for statePair, nominators, denominators in zip(self.lehmannNominators.keys(), self.lehmannNominators.values(), self.lehmannDenominators.values()):
-            data_p = list()
-            for wn in scatter_list(self.matsubaraMesh):
-                terms = [nom/(denom + complex(0, wn)) for noms, denom in zip(nominators, denominators) for nom in noms]
-                data_p.append(nsum(terms/self.partitionFunction))
-            self.matsubaraData.update({statePair: array(allgather_list(data_p))})
+        self.matsubaraData.update(lehmannSum(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.matsubaraMesh, [+1, +1], 0, [+1, +1]))
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getMatsubara(self, statePair):
@@ -68,3 +58,14 @@ class OneParticleGreensFunction(object):
     def getSpectralFunction(self, statePair):
         """use explicit setRetarded to change the imaginary Offset"""
         return array([-1/pi *gret.imag for gret in self.getRetarded(statePair)])
+
+def lehmannSum(elementProducts, energyDifferences, partitionFunction, mesh, signature, imaginaryOffset, nominatorCoefficients):
+    result = dict()
+    for statePair, nominators, denominators in zip(elementProducts.keys(), elementProducts.values(), energyDifferences.values()):
+        data_p = list()
+        for w in scatter_list(mesh):
+            terms = [coeff * nom/(w + denom + complex(0, imaginaryOffset)) for noms, denom in zip(nominators, denominators) for nom, coeff in zip(noms, nominatorCoefficients)]
+            data_p.append(nsum(terms/partitionFunction))
+        result.update({statePair: array(allgather_list(data_p))})
+    return result
+    
