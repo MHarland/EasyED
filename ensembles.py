@@ -138,13 +138,22 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
         muMatrix = mu * nsum([c[orb].H.dot(c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
         self.hamiltonian.matrix = self.hamiltonian.matrix - muMatrix
 
-    def setMu(self, filling, muMin, muMax, muTol = .001, maxiter = 100):
+    def setMu(self, mu):
+        c = AnnihilationOperator(self.singleParticleBasis)
+        nMatrix = nsum([c[orb].H.dot(c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
+        self.hamiltonian.matrix = self.hamiltonian.matrix + self.mu * nMatrix
+        self.mu = mu
+        self.hamiltonian.matrix = self.hamiltonian.matrix - mu * nMatrix
+        report('Chemical potential set to '+str(mu), self.verbose)
+
+    def setMuByFilling(self, filling, muMin, muMax, muTol = .001, maxiter = 100):
         c = AnnihilationOperator(self.singleParticleBasis)
         nMatrix = nsum([c[orb].H.dot(c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
         self.hamiltonian.matrix = self.hamiltonian.matrix + self.mu * nMatrix
         def fillingFunction(muTrial):
             self.hamiltonian.matrix = self.hamiltonian.matrix - muTrial * nMatrix
             self.calcEigensystem()
+            self.calcPartitionFunction()
             self.calcOccupation()
             fillingTrial = self.getTotalOccupation()
             self.hamiltonian.matrix = self.hamiltonian.matrix + muTrial * nMatrix
