@@ -8,7 +8,7 @@ class DynamicObservable(object):
         self.lehmannDenominators = dict()
         self.mesh = None
         self.retardedData = dict()
-        self.matsubaraMesh = dict()
+        self.matsubaraMesh = None
         self.matsubaraData = dict()
         self.spectralData = dict()
         self.partitionFunction = None
