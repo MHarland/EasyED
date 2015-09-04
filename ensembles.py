@@ -1,8 +1,8 @@
 from itertools import product
-from numpy import trace, exp, sum as nsum, identity, where, array
+from numpy import trace, exp, sum as nsum, identity, where, array, ndarray
 from scipy.optimize import bisect
 from time import time
-from greensfunctions import OneParticleGreensFunction
+from observables import DynamicObservable
 from operators import AnnihilationOperator
 from util import scatter_list, sumScatteredLists, report, allgather_list
 
@@ -18,7 +18,7 @@ class CanonicalEnsemble(object):
         self.energyEigenvalues = None
         self.occupation = dict()
         self.verbose = verbose
-        self.g1 = OneParticleGreensFunction(self.verbose)
+        self.g1 = DynamicObservable(self.verbose)
 
     def calcOccupation(self, singleParticleState = None):
         c = AnnihilationOperator(self.singleParticleBasis)
@@ -82,43 +82,51 @@ class CanonicalEnsemble(object):
         self.energyEigenstates = self.hamiltonian.eigenStates
         self.energyEigenvalues = self.hamiltonian.eigenEnergies
 
-    def calcG1(self, singleParticleStatePairs = None):
-        c = AnnihilationOperator(self.singleParticleBasis)
+    def getLehmannTermsDynamic(self, operator1, operator2):
+        if type(operator1) != ndarray:
+            operator1 = operator1.toarray()
+            operator2 = operator2.toarray()
         e = self.getEnergyEigenvalues()
         ve = self.getEnergyEigenstates().toarray()
         fockstates = range(self.fockspaceSize)
+
+        n_inds_p = array(scatter_list(fockstates))
+        nominators_p = []
+        denominators_p = []
+        for n in n_inds_p:
+            n_op1 = ve[:,n].dot(operator1)
+            op2_n = operator2.dot(ve[:,n])
+            expn = exp(-self.beta*e[n])
+            for m in fockstates:
+                el1 = n_op1.dot(ve[:,m])
+                if el1 != 0:
+                    el2 = ve[:,m].dot(op2_n)
+                    if el2 != 0:
+                        expm = exp(-self.beta*e[m])
+                        el = el1*el2
+                        nominators_p.append([])
+                        nominators_p[-1].append(expn*el)
+                        nominators_p[-1].append(expm*el)
+                        denominators_p.append(e[n]-e[m])
+        return allgather_list(nominators_p), allgather_list(denominators_p)
+
+    def calcG1(self, singleParticleStatePairs = None):
+        c = AnnihilationOperator(self.singleParticleBasis)
         if singleParticleStatePairs == None:
             statePairs = [(state1, state2) for state1, state2 in product(self.orderedSingleParticleStates, self.orderedSingleParticleStates)]
         else:
             statePairs = singleParticleStatePairs
-
         self.g1.partitionFunction = self.getPartitionFunction()
 
-        report('Calculating one-particle Green\'s function...', self.verbose)
+        report('Calculating one-particle Green\'s function transition elements and energies...', self.verbose)
         t0 = time()
         for statePair in statePairs:
-            c_state = c[statePair[0]].toarray()
-            c_state_dag = c[statePair[1]].H.toarray()
-            n_inds_p = array(scatter_list(fockstates))
-            nominators_p = []
-            denominators_p = []
-            for n in n_inds_p:
-                n_c_state = ve[:,n].dot(c_state)
-                c_state_dag_n = c_state_dag.dot(ve[:,n])
-                expn = exp(-self.beta*e[n])
-                for m in fockstates:
-                    el1 = n_c_state.dot(ve[:,m])
-                    if el1 != 0:
-                        el2 = ve[:,m].dot(c_state_dag_n)
-                        if el2 != 0:
-                            expm = exp(-self.beta*e[m])
-                            el = el1*el2
-                            nominators_p.append([])
-                            nominators_p[-1].append(expn*el)
-                            nominators_p[-1].append(expm*el)
-                            denominators_p.append(e[n]-e[m])
-            self.g1.lehmannNominators.update({statePair: allgather_list(nominators_p)})
-            self.g1.lehmannDenominators.update({statePair: allgather_list(denominators_p)})
+            c_state = c[statePair[0]]
+            c_state_dag = c[statePair[1]].H
+            lNoms, lDenoms = self.getLehmannTermsDynamic(c_state, c_state_dag)
+            self.g1.lehmannNominators.update({statePair: lNoms})
+            self.g1.lehmannDenominators.update({statePair: lDenoms})
+            del lNoms, lDenoms
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
 class GrandcanonicalEnsemble(CanonicalEnsemble):
