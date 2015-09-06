@@ -98,7 +98,7 @@ class Hamiltonian(SingleParticleBasis):
     def getGroundStates(self, energyResolution = .0001):
         groundStates = list()
         for psi in self.getGroundSuperpositionState(energyResolution):
-            groundStates.append(psi.getStateAlgebraically())
+            groundStates.append(psi.getStateAlgebraically(energyResolution))
         return groundStates
 
     def getSpectrum(self, energyResolution = .0001):

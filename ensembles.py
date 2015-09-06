@@ -144,6 +144,10 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
         self.hamiltonian.matrix = self.hamiltonian.matrix + self.mu * nMatrix
         self.mu = mu
         self.hamiltonian.matrix = self.hamiltonian.matrix - mu * nMatrix
+        self.energyEigenvalues = None
+        self.energyEigenstates = None
+        self.partitionFunction = None
+        self.occupation = dict()
         report('Chemical potential set to '+str(mu), self.verbose)
 
     def setMuByFilling(self, filling, muMin, muMax, muTol = .001, maxiter = 100):

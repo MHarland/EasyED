@@ -8,11 +8,13 @@ class DynamicObservable(object):
         self.lehmannDenominators = dict()
         self.mesh = None
         self.retardedData = dict()
+        self.causalData = dict()
         self.matsubaraMesh = None
         self.matsubaraData = dict()
         self.spectralData = dict()
         self.partitionFunction = None
         self.verbose = verbose
+        self.customData = dict()
 
     def setMesh(self, nOmega, omegaMin, omegaMax):
         assert omegaMin <= 0 and omegaMax > 0, 'Choose omegaMin <= 0 < omegaMax.'
@@ -25,7 +27,7 @@ class DynamicObservable(object):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(retarded)...', self.verbose)
         t0 = time()
-        self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, +1]))
+        self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, 0]))
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getRetarded(self, statePair):
@@ -34,6 +36,34 @@ class DynamicObservable(object):
         else:
             self.setRetarded()
             return self.retardedData[statePair]
+
+    def setCausal(self, imaginaryOffset = 0.01):
+        assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
+        report('Calculating one-particle Green\'s function(causal)...', self.verbose)
+        t0 = time()
+        self.causalData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, -1]))
+        report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
+
+    def getCausal(self, statePair):
+        if statePair in self.causalData.keys():
+            return self.causalData[statePair]
+        else:
+            self.setCausal()
+            return self.causalData[statePair]
+
+    def setCustom(self, signature, coefficients, imaginaryOffset = 0.01):
+        assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
+        report('Calculating custom function...', self.verbose)
+        t0 = time()
+        self.customData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, signature, imaginaryOffset, coefficients))
+        report('took '+str(time()-t0)[:4]+' seconds', self.verbose)        
+
+    def getCustom(self, statePair, signature = [1, 1], coefficients = [1, 1], imaginaryOffset = 0.01):
+        if statePair in self.customData.keys():
+            return self.customData[statePair]
+        else:
+            self.setCustom(signature, coefficients, imaginaryOffset)
+            return self.customData[statePair]
 
     def setMatsubaraMesh(self, nOmega, beta):
         self.matsubaraMesh = array([complex(0, 2*n+1)*pi/beta for n in range(nOmega)])
