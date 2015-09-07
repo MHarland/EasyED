@@ -5,8 +5,8 @@ from numpy import load, save, array
 from os.path import isfile
 
 beta = 10
+u = .5
 mu0 = 0
-u = 1
 t = -1
 r = -1
 h = Hubbard([[0,t,t,r],[t,0,r,t],[t,r,0,t],[r,t,t,0]], u, verbose = True)

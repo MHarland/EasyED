@@ -6,7 +6,7 @@ fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 
 tetrahedron.calcG1([(('up',0),('up',0)), (('dn',0),('dn',0))])
-tetrahedron.g1.setMesh(250, -2, 2)
+tetrahedron.g1.setMesh(250, -1, 1)
 sZ0 = .5 * (tetrahedron.g1.getRetarded((('up',0),('up',0))) - tetrahedron.g1.getRetarded((('dn',0),('dn',0))) )
 
 ax.plot(tetrahedron.g1.getMesh(), sZ0.imag)

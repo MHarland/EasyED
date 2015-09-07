@@ -20,14 +20,14 @@ chi_pm.lehmannDenominators.update({'loc': denoms})
 noms, denoms = tetrahedron.getLehmannTermsDynamic(sPlus0, sMinus1)
 chi_pm.lehmannNominators.update({'nn': noms})
 chi_pm.lehmannDenominators.update({'nn': denoms})
-chi_pm.setMesh(250, 0, 1)
+chi_pm.setMesh(1000, -1, 1)
 
 for ind in ['loc', 'nn']:
-    ax1.plot(chi_pm.getMesh(), chi_pm.getCustom(ind, [1, -1], [1, -1]).imag, label = str(ind))
+    ax1.plot(chi_pm.getMesh(), chi_pm.getCustom(ind, [1, -1], [1, 0]).imag, label = str(ind))
     #ax2.plot(chi_pm.getMesh(), chi_pm.getCustom(ind, [1, -1], [1, -1]).real, label = str(ind))
 
 ax1.legend()
-ax1.set_ylabel('$\mathrm{Im}\,\chi^{c}_{+-}(\omega)$')
+ax1.set_ylabel('$\mathrm{Im}\,\chi^{ret}_{+-}(\omega)$')
 #ax2.set_ylabel('$\mathrm{Re}\,\chi_{+-}(\omega)$')
 ax1.set_xlabel('$\omega$')
 plt.tight_layout()
