@@ -9,16 +9,11 @@ ax1 = fig.add_subplot(2,1,1)
 #ax2 = fig.add_subplot(2,1,2)
 
 c = AnnihilationOperator(tetrahedron.singleParticleBasis)
-chi_zz = DynamicObservable(True)
-chi_zz.partitionFunction = tetrahedron.getPartitionFunction()
+
 sZ0 = .5 * (c['up', 0].H.dot(c['up', 0]) - c['dn', 0].H.dot(c['dn', 0]))
 sZ1 = .5 * (c['up', 1].H.dot(c['up', 1]) - c['dn', 1].H.dot(c['dn', 1]))
-noms, denoms = tetrahedron.getLehmannTermsDynamic(sZ0, sZ0)
-chi_zz.lehmannNominators.update({'loc': noms})
-chi_zz.lehmannDenominators.update({'loc': denoms})
-noms, denoms = tetrahedron.getLehmannTermsDynamic(sZ0, sZ1)
-chi_zz.lehmannNominators.update({'nn': noms})
-chi_zz.lehmannDenominators.update({'nn': denoms})
+chi_zz = DynamicObservable({'loc': (sZ0, sZ0), 'nn': (sZ0, sZ1)}, True)
+tetrahedron.setLehmannTermsDynamic(chi_zz)
 chi_zz.setMesh(1000, -1, 1)
 
 for ind in ['loc', 'nn']:

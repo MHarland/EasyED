@@ -19,6 +19,7 @@ class Hamiltonian(SingleParticleBasis):
         self.transformation = coo_matrix(([1]*self.fockspaceSize,
                                           (range(self.fockspaceSize),
                                            range(self.fockspaceSize))))
+        self.energyShift = None
 
     def getNEigenvalues(self):
         fockstates = arange(self.fockspaceSize)
@@ -68,9 +69,9 @@ class Hamiltonian(SingleParticleBasis):
             e, v = eigh(block)
             e_scat += list(e)
             v_scat += list(v)
-        self.eigenEnergies = shiftEnergies(diag(self.transformation.H.dot(self.transformation.transpose().dot(diag(allgather_list(e_scat)).transpose()).transpose())).copy()) # scipy hack for A = U^.D.U
+        self.eigenEnergies, self.energyShift = shiftEnergies(diag(self.transformation.H.dot(self.transformation.transpose().dot(diag(allgather_list(e_scat)).transpose()).transpose())).copy()) # scipy hack for A = U^.D.U
+        #self.eigenEnergies = diag(self.transformation.H.dot(self.transformation.transpose().dot(diag(allgather_list(e_scat)).transpose()).transpose())).copy() # scipy hack for A = U^.D.U
         v = allgather_list(v_scat)
-        #self.eigenStates = self.transformation.H.dot(self.transformation.transpose().dot(embedV(v, self.blocksizes)).transpose()) # scipy hack for A = U^.D.U
         self.eigenStates = self.transformation.H.dot(embedV(v, self.blocksizes)).dot(self.transformation)
         self.matrix = self.transformation.H.dot(self.matrix).dot(self.transformation)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
@@ -194,4 +195,4 @@ def shiftEnergies(energies):
     if emin < 0:
         for i in range(len(energies)):
             energies[i] = energies[i] - emin
-    return energies
+    return energies, emin

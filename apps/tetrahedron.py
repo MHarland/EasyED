@@ -4,8 +4,8 @@ from EasyED.util import report
 from numpy import load, save, array
 from os.path import isfile
 
-beta = 10
-u = .5
+beta = 100
+u = 0.75
 mu0 = 0
 t = -1
 r = -1

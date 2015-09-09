@@ -2,8 +2,22 @@ from numpy import array, sum  as nsum, empty, pi
 from time import time
 from util import report, scatter_list, allgather_list
 
+class StaticObservable(object):
+    def __init__(self, operators = dict(), verbose = False):
+        self.operators = operators
+        self.expectationValue = dict()
+
+    def addOperator(self, state, operator):
+        self.operators.update({state: operator})
+
+    def getExpectationValue(self, state):
+        assert state in self.operators.keys(), str(state)+' not defined.'
+        assert state in self.expectationValue.keys(), str(state)+'\'s expectation value not set.'
+        return self.expectationValue[state]
+
 class DynamicObservable(object):
-    def __init__(self, verbose = False):
+    def __init__(self, operatorPairs = dict(), verbose = False):
+        self.operatorPairs = operatorPairs
         self.lehmannNominators = dict()
         self.lehmannDenominators = dict()
         self.mesh = None
@@ -15,6 +29,9 @@ class DynamicObservable(object):
         self.partitionFunction = None
         self.verbose = verbose
         self.customData = dict()
+
+    def addOperatorPair(self, statePair, operatorPair):
+        self.operatorPairs.update({statePair: operatorPair})
 
     def setMesh(self, nOmega, omegaMin, omegaMax):
         assert omegaMin <= 0 and omegaMax > 0, 'Choose omegaMin <= 0 < omegaMax.'
