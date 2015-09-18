@@ -85,8 +85,10 @@ class SuperpositionState(SingleParticleBasis):
         for i, coeff in enumerate(self.coefficients):
             if abs(coeff) > thres:
                 if len(statestr) > 0:
-                    statestr += ' + '
-                statestr += str(coeff)
+                    statestr += ' '
+                if coeff > 0:
+                    statestr += '+'
+                statestr += str(coeff)[:7]
                 spstates = list()
                 statestr += SingleParticleBasis.getStateAlgebraically(self, i)
         return statestr

@@ -1,11 +1,12 @@
 from EasyED.ensembles import GrandcanonicalEnsemble
 from EasyED.hamiltonians import Hubbard
 from EasyED.util import report
-from numpy import load, save, array, where, linspace
+from numpy import load, save, array, where, pi
 
-us = [3]
+us = [.75, 1, 2, 2.75, 3, 3.25, 4]
+us = [1,3,4]
 fnames = ['beta_mu_u'+str(u)+'.npy' for u in us]
-betas = array([10, 100, 200])
+betas = array([5, 10, 15])
 results = list()
 
 for u, fname in zip(us, fnames):
@@ -18,12 +19,9 @@ for u, fname in zip(us, fnames):
         mu = beta_mu[1,where(beta_mu[0,:] == beta)[0][0]]
         report('u = '+str(u)+'; beta = '+str(beta)+'; mu = '+str(mu)+'...')
         tetrahedron = GrandcanonicalEnsemble(h, beta, mu, verbose = False)
-        tetrahedron.calcEigensystem()
-        energies = list()
-        degeneracies = list()
-        for e, d in zip(*tetrahedron.hamiltonian.getSpectrum(10**(-10))):
-            energies.append(e)
-            degeneracies.append(d)
-        results_u.append([energies, degeneracies])
+        tetrahedron.g1.setMesh(1000,-4,4)
+        tetrahedron.calcG1([(('up',0),('up',0))])
+        tetrahedron.g1.setRetarded(pi/beta)
+        results_u.append([tetrahedron.g1.getMesh(), tetrahedron.g1.getSpectralFunction((('up',0),('up',0)))])
     results.append(results_u)
-save('spectrum.npy', array(results))
+save('spectral_function.npy', array(results))

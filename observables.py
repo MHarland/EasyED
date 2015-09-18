@@ -40,11 +40,11 @@ class DynamicObservable(object):
     def getMesh(self):
         return self.mesh
 
-    def setRetarded(self, imaginaryOffset = 0.01):
+    def setRetarded(self, imaginaryOffset = 0.1):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(retarded)...', self.verbose)
         t0 = time()
-        self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, 0]))
+        self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, +1]))
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getRetarded(self, statePair):
@@ -54,7 +54,7 @@ class DynamicObservable(object):
             self.setRetarded()
             return self.retardedData[statePair]
 
-    def setCausal(self, imaginaryOffset = 0.01):
+    def setCausal(self, imaginaryOffset = 0.1):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(causal)...', self.verbose)
         t0 = time()
@@ -68,7 +68,7 @@ class DynamicObservable(object):
             self.setCausal()
             return self.causalData[statePair]
 
-    def setCustom(self, signature, coefficients, imaginaryOffset = 0.01):
+    def setCustom(self, signature, coefficients, imaginaryOffset = 0.1):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating custom function...', self.verbose)
         t0 = time()

@@ -79,7 +79,7 @@ class Hamiltonian(SingleParticleBasis):
     def getGroundStateEnergy(self):
         return min(self.eigenEnergies)
 
-    def getGroundSuperpositionState(self, energyResolution = .0001):
+    def getGroundSuperpositionState(self, energyResolution = 10**(-10)):
         inds = list()
         gss = list()
         for i, e in enumerate(self.eigenEnergies):
@@ -90,19 +90,19 @@ class Hamiltonian(SingleParticleBasis):
             gss.append(psi0)
         return gss
 
-    def getGroundStatesAlgebraically(self, energyResolution = .0001):
+    def getGroundStatesAlgebraically(self, energyResolution = 10**(-10)):
         groundStates = list()
         for psi in self.getGroundSuperpositionState(energyResolution):
             groundStates.append(psi.getStateAlgebraically())
         return groundStates
 
-    def getGroundStates(self, energyResolution = .0001):
+    def getGroundStates(self, energyResolution = 10**(-10), threshold = .0001):
         groundStates = list()
         for psi in self.getGroundSuperpositionState(energyResolution):
-            groundStates.append(psi.getStateAlgebraically(energyResolution))
+            groundStates.append(psi.getStateAlgebraically(threshold))
         return groundStates
 
-    def getSpectrum(self, energyResolution = .0001):
+    def getSpectrum(self, energyResolution = 10**(-10)):
         degeneracies = list()
         energies = list()
         for e in self.eigenEnergies:

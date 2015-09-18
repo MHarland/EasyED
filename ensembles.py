@@ -35,8 +35,9 @@ class CanonicalEnsemble(object):
             terms_p = list()
             for n in n_inds_p:
                 el = ve[:,n].dot(m.dot(ve[:,n]))
-                if el != 0:
-                    terms_p.append(exp(-self.beta*e[n]) * el)
+                expn = exp(-self.beta*e[n])
+                if el != 0 and expn != 0:
+                    terms_p.append(expn * el)
             staticObservable.expectationValue.update({index: sumScatteredLists(terms_p)/z})
 
     def calcOccupation(self, singleParticleState = None):
