@@ -1,6 +1,6 @@
 from numpy import load, array
 from matplotlib import pyplot as plt
-from matplotlib_to_latex import set_poster_parameters as set_mpl
+#from matplotlib_to_latex import set_poster_parameters as set_mpl
 
 a_u_beta = load('spectral_function.npy')
 us = [2.75, 3, 3.25]
@@ -9,12 +9,14 @@ us = [1,3,4]
 u_inds = range(3) # indices of us that will be plotted
 betas = array([10, 100, 200, 400])
 betas = array([5, 10, 15])
+betas = array([10, 100, 200, 400])
 temperatures = 1./betas
 colors = [plt.cm.jet(i/max(float(len(betas)-1),1)) for i in range(len(betas))]
 linestyles = ['-', '--', '-.', ':']
-linestyles = ['-', '--', ':']
+linestyles = ['-']*4
+#linestyles = ['-', '--', ':']
 
-set_mpl()
+#set_mpl()
 fig = plt.figure()
 ax_exists = False
 ax_nr = 1
@@ -35,7 +37,7 @@ for i, a_beta, u in zip(range(len(a_u_beta)), a_u_beta, us):
     for a, beta, color, linestyle in zip(a_beta[::-1], betas[::-1], colors, linestyles):
         ax.plot(a[0,:], a[1,:], label = str(1./beta)[:6], color = color, linestyle = linestyle)
     #ax.set_xlim(-.5,2.5)
-    ax.set_xlim(-4,4)
+    ax.set_xlim(-5,5)
     yticks = ax.get_yticks()
 
 plt.legend(loc = 'upper right', title = '$T$', bbox_to_anchor = (.5,1))
