@@ -1,5 +1,5 @@
 from itertools import product, izip
-from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix, arange, diag, min as nmin
+from numpy import array, sum as nsum, zeros, argmin, identity, asmatrix, arange, diag, min as nmin, argsort, sort
 from scipy.linalg import eigh
 from scipy.sparse import coo_matrix
 from time import time
@@ -90,10 +90,31 @@ class Hamiltonian(SingleParticleBasis):
             gss.append(psi0)
         return gss
 
-    def getGroundStatesAlgebraically(self, energyResolution = 10**(-10)):
+    def getSuperpositionStatesEnergySorted(self, energyResolution = 10**(-10), threshold = .0001):
+        states = list()
+        states.append(list())
+        inds = argsort(self.eigenEnergies)
+        for j, i in enumerate(inds):
+            e = self.eigenEnergies[i]
+            if j > 0:
+                if not abs(e-self.eigenEnergies[inds[j-1]]) < energyResolution:
+                    states.append(list())
+            psi0 = SuperpositionState(self.eigenStates.toarray()[:, i], self.singleParticleBasis)
+            states[-1].append(psi0)
+        return states
+
+    def getStatesEnergySortedAlgebraically(self, energyResolution = 10**(-10), threshold = .0001):
+        states = list()
+        for energyGroup in self.getSuperpositionStatesEnergySorted(energyResolution):
+            states.append(list())
+            for psi in energyGroup:
+                states[-1].append(psi.getStateAlgebraically(threshold))
+        return states
+
+    def getGroundStatesAlgebraically(self, energyResolution = 10**(-10), threshold = .0001):
         groundStates = list()
         for psi in self.getGroundSuperpositionState(energyResolution):
-            groundStates.append(psi.getStateAlgebraically())
+            groundStates.append(psi.getStateAlgebraically(threshold))
         return groundStates
 
     def getGroundStates(self, energyResolution = 10**(-10), threshold = .0001):
@@ -101,6 +122,17 @@ class Hamiltonian(SingleParticleBasis):
         for psi in self.getGroundSuperpositionState(energyResolution):
             groundStates.append(psi.getStateAlgebraically(threshold))
         return groundStates
+
+    def getEnergies(self, energyResolution = 10**(-10)):
+        energies = list()
+        for i, e in enumerate(sort(self.eigenEnergies)):
+            if i > 0:
+                if abs(e-eold) > energyResolution:
+                    energies.append(e)
+            else:
+                energies.append(e)
+            eold = e
+        return energies
 
     def getSpectrum(self, energyResolution = 10**(-10)):
         degeneracies = list()

@@ -3,11 +3,11 @@ from matplotlib import pyplot as plt
 
 a_u_beta = load('spectral_function.npy')
 us = [1,8,12]
-betas = array([10, 100, 200, 400])
+betas = array([1,5,10])
 u_inds = range(3) # indices of us that will be plotted
 temperatures = 1./betas
 colors = [plt.cm.jet(i/float(len(betas)-1)) for i in range(len(betas))]
-linestyles = ['-', '--', '-.', ':']
+linestyles = ['-', '--', ':']
 
 fig = plt.figure()
 ax_exists = False
@@ -33,7 +33,7 @@ for i, a_beta, u in zip(range(len(a_u_beta)), a_u_beta, us):
     #ax.set_ylim(0,3)
     yticks = ax.get_yticks()
 
-#plt.legend(loc = 'upper left', title = '$T$')
+plt.legend(loc = 'upper right', title = '$T$')
 plt.tight_layout()
 plt.savefig('spectral_function.pdf', dpi=300)
 plt.close()

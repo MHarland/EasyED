@@ -8,36 +8,27 @@ from util import report
 
 numpy.set_printoptions(suppress=True)
 structure = Hubbard([[0, -1], [-1, 0]], 1)
-#t = -1.
-#structure = Hubbard([[0,t,t,t],[t,0,t,t],[t,t,0,t],[t,t,t,0]], 4, mu = 2)
-#report(structure.matrix.toarray())
+
 report(structure.blocksizes)
-#print
-#structure = Hubbard([[0, -1], [-1, 0]], 2, 1/sqrt(2) * array([[1,1],[1,-1]]))
-#print structure.matrix.toarray()
-#print
 structure.solve()
-#print structure.eigenEnergies
-print sort(structure.eigenEnergies)
-"""
-for i in range(len(structure.eigenStates)):
-    vstr = str()
-    for j in range(len(structure.eigenStates)):
-        val = structure.eigenStates[i,j]
-        if abs(val) < .0001:
-            vstr += ' 0.0'
-        else:
-            vstr += ' ' + str(val)[:4]
-    print vstr
-"""
+print structure.eigenEnergies
+
 print 'groundstateenergy: ', structure.getGroundStateEnergy()
-print 'states:'
+print 'groundstates:'
 for state in structure.getGroundStatesAlgebraically():
     print state
     print
-#print
-#for state in structure.getGroundStates():
-#
+
+print 'states:'
+for energyGroup, energy in zip(structure.getStatesEnergySortedAlgebraically(), structure.getEnergies()):
+    print 'E = ', energy
+    print
+    for state in energyGroup:
+        print state
+        print
+    print
+    print
+
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 es = list()

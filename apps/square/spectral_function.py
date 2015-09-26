@@ -1,11 +1,11 @@
 from EasyED.ensembles import GrandcanonicalEnsemble
 from EasyED.hamiltonians import Hubbard
 from EasyED.util import report
-from numpy import load, save, array, where
+from numpy import load, save, array, where, pi
 
 us = [1,8,12]
 fnames = ['beta_mu_u'+str(u)+'.npy' for u in us]
-betas = array([10,100,200,400])
+betas = array([1,5,10,15])
 results = list()
 
 for u, fname in zip(us, fnames):
@@ -20,7 +20,7 @@ for u, fname in zip(us, fnames):
         tetrahedron = GrandcanonicalEnsemble(h, beta, mu, verbose = False)
         tetrahedron.g1.setMesh(200,-10,10)
         tetrahedron.calcG1([(('up',0),('up',0))])
-        tetrahedron.g1.setRetarded(.5)
+        tetrahedron.g1.setRetarded(pi/beta)
         results_u.append([tetrahedron.g1.getMesh(), tetrahedron.g1.getSpectralFunction((('up',0),('up',0)))])
     results.append(results_u)
 save('spectral_function.npy', array(results))

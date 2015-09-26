@@ -139,7 +139,7 @@ class CanonicalEnsemble(object):
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
 class GrandcanonicalEnsemble(CanonicalEnsemble):
-    """use canonical with mu in H, TODO transform mu"""
+    """use canonical with mu in H"""
     def __init__(self, hamiltonian, beta, mu, verbose = True):
         self.mu = mu
         CanonicalEnsemble.__init__(self, hamiltonian, beta, verbose)
@@ -180,6 +180,7 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
 class MicrocanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian):
         CanonicalEnsemble.__init__(self, hamiltonian, 0)
+        report('MicrocanonicalEnsemble has not been tested sufficiently yet')
 
     #def getIndsForSum(self):
     #    inds, = where(self.energyEigenvalues == self.energyEigenvalues.min())

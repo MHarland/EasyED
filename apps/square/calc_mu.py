@@ -3,8 +3,8 @@ from EasyED.hamiltonians import Hubbard
 from EasyED.util import report
 from numpy import save, array, linspace
 
-betas = array([10,100,200,400])
-us = [12]
+betas = array([1,5,10,15])
+us = [1,4,8,12]
 mu0 = 0
 t = -1
 r = 0

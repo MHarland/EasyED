@@ -2,10 +2,6 @@ from itertools import product
 from numpy import matrix, sum as nsum, binary_repr, dot, zeros, identity, sqrt, bitwise_xor
 from scipy.sparse import coo_matrix
 
-from blocks import BlockMatrix
-from permutation import Permutation
-from util import diracDelta #remove
-
 class SingleParticleBasis(object):
     def __init__(self, singleParticleBasis = list()):
         self.singleParticleBasis = singleParticleBasis
@@ -83,7 +79,7 @@ class SuperpositionState(SingleParticleBasis):
     def getStateAlgebraically(self, thres = .0001):
         statestr = str()
         for i, coeff in enumerate(self.coefficients):
-            if abs(coeff) > thres:
+            if abs(coeff) >= thres:
                 if len(statestr) > 0:
                     statestr += ' '
                 if coeff > 0:
@@ -92,19 +88,7 @@ class SuperpositionState(SingleParticleBasis):
                 spstates = list()
                 statestr += SingleParticleBasis.getStateAlgebraically(self, i)
         return statestr
-    """
-    def getMatrix(self):
-        c = AnnihilationOperator(self.singleParticleBasis)
-        stateMatrix = zeros([c.fockspaceSize, c.fockspaceSize])
-        for i, coeff in enumerate(self.coefficients):
-            ibin = binary_repr(i, width = self.nrOfSingleParticleStates)
-            matrixToAdd = identity(c.fockspaceSize)
-            for j, digit in enumerate(ibin):
-                if digit == '1':
-                    matrixToAdd = dot(matrixToAdd, c[self.orderedSingleParticleStates[j]].H)
-            stateMatrix += coeff * matrixToAdd
-        return matrix(stateMatrix)
-    """
+
 def annihilateOccRep(spsToAnnihilate, fockstate):
     newState = str()
     for i, occ in enumerate(fockstate):
