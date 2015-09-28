@@ -1,5 +1,5 @@
 from itertools import product
-from numpy import matrix, sum as nsum, binary_repr, dot, zeros, identity, sqrt, bitwise_xor
+from numpy import matrix, sum as nsum, binary_repr, dot, zeros, identity, sqrt, bitwise_xor, sort, argsort
 from scipy.sparse import coo_matrix
 
 class SingleParticleBasis(object):
@@ -76,18 +76,25 @@ class SuperpositionState(SingleParticleBasis):
         SingleParticleBasis.__init__(self, spbasis)
         self.coefficients = coefficients
 
-    def getStateAlgebraically(self, thres = .0001):
+    def getStateAlgebraically(self, thres = .0001, linebreak = True):
         statestr = str()
-        for i, coeff in enumerate(self.coefficients):
+        for i in argsort(abs(self.coefficients))[::-1]:
+            coeff = self.coefficients[i]
             if abs(coeff) >= thres:
-                if len(statestr) > 0:
+                if len(statestr) > 0 and not linebreak:
                     statestr += ' '
                 if coeff > 0:
                     statestr += '+'
                 statestr += str(coeff)[:7]
                 spstates = list()
                 statestr += SingleParticleBasis.getStateAlgebraically(self, i)
+                if linebreak:
+                    statestr += '\n'
         return statestr
+
+    def getStateAlgebraicallyByCoefficient(self, energyResolution = 10**(-10), n_coeff = 1):
+        threshold = sort(abs(self.coefficients))[-n_coeff] - energyResolution
+        return self.getStateAlgebraically(threshold)
 
 def annihilateOccRep(spsToAnnihilate, fockstate):
     newState = str()

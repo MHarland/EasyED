@@ -103,12 +103,15 @@ class Hamiltonian(SingleParticleBasis):
             states[-1].append(psi0)
         return states
 
-    def getStatesEnergySortedAlgebraically(self, energyResolution = 10**(-10), threshold = .0001):
+    def getStatesEnergySortedAlgebraically(self, energyResolution = 10**(-10), threshold = .0001, n_coeff = None):
         states = list()
         for energyGroup in self.getSuperpositionStatesEnergySorted(energyResolution):
             states.append(list())
             for psi in energyGroup:
-                states[-1].append(psi.getStateAlgebraically(threshold))
+                if n_coeff == None:
+                    states[-1].append(psi.getStateAlgebraically(threshold))
+                else:
+                    states[-1].append(psi.getStateAlgebraicallyByCoefficient(n_coeff = n_coeff))
         return states
 
     def getGroundStatesAlgebraically(self, energyResolution = 10**(-10), threshold = .0001):
