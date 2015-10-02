@@ -5,16 +5,11 @@ from EasyED.operators import AnnihilationOperator
 from EasyED.util import report
 from numpy import load, save, array
 
-<<<<<<< HEAD
-us = [3]
-fnames = ['beta_mu_u'+str(u)+'.npy' for u in us]
-=======
-us = [2,3,4]
+us = [1,2,3,4]
 fnames = ['beta_mu_u'+str(u)+'b.npy' for u in us]
->>>>>>> refine calculations after discussion in Dresden
 
 t = -1
-r = .3
+r = -1
 h = Hubbard([[0,t,t,r],[t,0,r,t],[t,r,0,t],[r,t,t,0]], 0, verbose = False)
 c = AnnihilationOperator(h.singleParticleBasis)
 sZ0 = .5 * (c['up', 0].H.dot(c['up', 0]) - c['dn', 0].H.dot(c['dn', 0]))
@@ -36,8 +31,4 @@ for u, fname in zip(us, fnames):
         s2_nn.append(3*chi_zz_hat.getExpectationValue('nn'))
     results.append([betas, mus, s2_loc, s2_nn])
 
-<<<<<<< HEAD
 save('s2_temperature.npy', array(results))
-=======
-save('s2_temperatureb.npy', array(results))
->>>>>>> refine calculations after discussion in Dresden

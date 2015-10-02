@@ -3,22 +3,21 @@ from EasyED.hamiltonians import Hubbard
 from EasyED.observables import StaticObservable
 from EasyED.operators import AnnihilationOperator
 from EasyED.util import report
-from numpy import load, save, array
+from numpy import load, save, array, linspace
 
-us = [3]
-fnames = ['beta_mu_u'+str(u)+'.npy' for u in us]
-
+mus = [.26,.27,.28]
+temperatures = linspace(.0001,.1,20)
+betas = 1/temperatures
+u = 3
 t = -1
 r = .3
 h = Hubbard([[0,t,t,r],[t,0,r,t],[t,r,0,t],[r,t,t,0]], 0, verbose = False)
 results = list()
 
-for u, fname in zip(us, fnames):
-    betas = load(fname)[0,:]
-    mus = load(fname)[1,:]
+for mu in mus:
     specificHeat = list()
-    for beta, mu in zip(betas, mus):
-        report('u = '+str(u)+'; beta = '+str(beta)+'...')
+    for beta  in betas:
+        report('mu = '+str(mu)+'; beta = '+str(beta)+'...')
         h = Hubbard([[0,t,t,r],[t,0,r,t],[t,r,0,t],[r,t,t,0]], u, verbose = False)
         eMatrix = h.matrix.copy()
         eSquaredMatrix = eMatrix.dot(eMatrix)

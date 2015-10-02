@@ -3,8 +3,9 @@ from EasyED.hamiltonians import Hubbard
 from EasyED.util import report
 from numpy import save, array, linspace
 
-betas = array([10**4, 10**5, 10**6])
-us = [3]
+temperatures = linspace(.01, 3.01, 60)
+betas = 1/temperatures
+us = [1,2,3,4]
 mu0 = 0
 t = -1
 r = -1

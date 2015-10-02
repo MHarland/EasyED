@@ -1,15 +1,9 @@
 from numpy import load
 from matplotlib import pyplot as plt
 
-<<<<<<< HEAD
 datas = load('s2_temperature.npy')
-us = [3]
-u_inds = [0]
-=======
-datas = load('s2_temperatureb.npy')
-us = [2,3,4]
-u_inds = range(3)
->>>>>>> refine calculations after discussion in Dresden
+us = [1,2,3,4]
+u_inds = range(4)
 colors = [plt.cm.jet(i/float(max(len(u_inds)-1, 1))) for i in range(len(u_inds))]
 
 fig = plt.figure()
@@ -24,13 +18,8 @@ for u_ind, color in zip(u_inds, colors):
     s2_loc = data[2,:]
     ax.plot(temperatures, s2_loc, color = color)
 ax.set_xlabel('$T$')
-<<<<<<< HEAD
-ax.set_xlim(0,.1)
-ax.set_ylim(.4,.6)
-=======
 #ax.set_xlim(0,.1)
 #ax.set_ylim(.4,.6)
->>>>>>> refine calculations after discussion in Dresden
 ax.set_ylabel('$<S^{2}>$')
 
 ax = fig.add_subplot(1,2,2)
@@ -43,19 +32,10 @@ for u_ind, color in zip(u_inds, colors):
     s2_nn = data[3,:]
     ax.plot(temperatures, s2_nn, label = str(u), color = color)
 ax.set_xlabel('$T$')
-<<<<<<< HEAD
-ax.set_xlim(0,.1)
-ax.set_ylim(-.2,0)
-plt.legend(loc = 'upper right', title = '$U$')
-
-plt.tight_layout()
-plt.savefig('s2_temperature.pdf', dpi=300)
-=======
 #ax.set_xlim(0,.1)
 #ax.set_ylim(-.2,0)
 plt.legend(loc = 'upper right', title = '$U$')
 
 plt.tight_layout()
-plt.savefig('s2_temperatureb.pdf', dpi=300)
->>>>>>> refine calculations after discussion in Dresden
+plt.savefig('s2_temperature.pdf', dpi=300)
 plt.close()

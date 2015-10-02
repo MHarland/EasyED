@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 #from matplotlib_to_latex import set_poster_parameters as set_mpl
 
 a_u_beta = load('spectrum.npy')
-us = [3]
-u_inds = [0]
+mus = [.26,.27,.28]
+u_inds = range(3)
 betas = array([10, 17, 20])
 beta_inds = range(3)
 
@@ -15,7 +15,7 @@ colors = [plt.cm.jet(i/float(max(len(beta_inds),2)-1)) for i in range(len(beta_i
 fig = plt.figure()
 ax_exists = False
 ax_nr = 1
-for i, a_beta, u in zip(range(len(a_u_beta)), a_u_beta, us):
+for i, a_beta, mu in zip(range(len(a_u_beta)), a_u_beta, mus):
     if not i in u_inds: continue
     if not ax_exists:
         ax = fig.add_subplot(len(u_inds),1,ax_nr)
@@ -24,7 +24,7 @@ for i, a_beta, u in zip(range(len(a_u_beta)), a_u_beta, us):
         ax = fig.add_subplot(len(u_inds),1,ax_nr,sharey = ax)
     ax_nr += 1
     ax.set_xlabel('$\omega$')
-    ax.set_title('$U = '+str(u)+'$')
+    ax.set_title('$\mu = '+str(mu)+'$')
     ax.set_ylabel('$\mathrm{Degeneracy}$')
     for a, beta_ind, color, linestyle in zip(a_beta[::-1], beta_inds[::-1], colors, linestyles):
         beta = betas[beta_ind]
