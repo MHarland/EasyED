@@ -148,6 +148,17 @@ class Hamiltonian(SingleParticleBasis):
                 energies.append(e)
         return energies, degeneracies
 
+    def getSpectrumEnergySorted(self, energyResolution = 10**(-10)):
+        energies, degeneracies = self.getSpectrum(energyResolution)
+        inds = argsort(energies)
+        energiesSorted = []
+        degeneraciesSorted = []
+        for ind in inds:
+            energiesSorted.append(energies[ind])
+            degeneraciesSorted.append(degeneracies[ind])
+        return energiesSorted, degeneraciesSorted
+
+
 class Hubbard(Hamiltonian):
     def __init__(self, t, u, siteSpaceTransformation = None, verbose = False):
         self.verbose = verbose

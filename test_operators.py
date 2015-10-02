@@ -27,3 +27,4 @@ print c['u', 1].toarray()
 print
 print c['u', 1].transpose().dot(c['u', 1]).toarray()
 print nsum([c[s, i].transpose().dot(c[s, i]) for s, i in product(['u', 'd'], range(2))], axis = 0)
+

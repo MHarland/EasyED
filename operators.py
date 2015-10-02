@@ -96,6 +96,9 @@ class SuperpositionState(SingleParticleBasis):
         threshold = sort(abs(self.coefficients))[-n_coeff] - energyResolution
         return self.getStateAlgebraically(threshold)
 
+    def getQuantumNumber(self, operator):
+        return self.coefficients.dot(operator.toarray().dot(self.coefficients))
+
 def annihilateOccRep(spsToAnnihilate, fockstate):
     newState = str()
     for i, occ in enumerate(fockstate):
