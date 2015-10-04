@@ -97,7 +97,7 @@ class SuperpositionState(SingleParticleBasis):
         return self.getStateAlgebraically(threshold)
 
     def getQuantumNumber(self, operator):
-        return self.coefficients.dot(operator.toarray().dot(self.coefficients))
+        return self.coefficients.dot(operator.dot(self.coefficients))
 
 def annihilateOccRep(spsToAnnihilate, fockstate):
     newState = str()
