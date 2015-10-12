@@ -9,7 +9,7 @@ basis =  SingleParticleBasis(inds)
 print basis.getSingleParticleBasis()
 print basis.orderedSingleParticleStates
 print 'u0 d0 d1:'
-print basis.getState(13)
+print basis.getStateAlgebraically(13)
 print basis.getFockspaceNr((1,0,1,1))
 print basis.getOccupationRep(13)
 print 'up1:'
