@@ -5,8 +5,8 @@ from EasyED.operators import AnnihilationOperator
 from EasyED.util import report
 from numpy import load, save, array, where, pi
 
-mus = [.26,.27,.28]
-betas = array([10, 17, 20])
+mus = [.27]
+betas = array([20])
 u = 3
 t = -1
 r = .3
@@ -18,14 +18,13 @@ for mu in mus:
         report('u = '+str(u)+'; beta = '+str(beta)+'; mu = '+str(mu)+'...')
         h = Hubbard([[0,t,t,r],[t,0,r,t],[t,r,0,t],[r,t,t,0]], u, verbose = False)
         c = AnnihilationOperator(h.singleParticleBasis)
-        sPlus0 = c['up', 0].H.dot(c['dn', 0])
-        sMinus0 = c['dn', 0].H.dot(c['up', 0])
-        sMinus1 = c['dn', 1].H.dot(c['up', 1])
-        chi_pm = DynamicObservable({'loc': (sPlus0, sMinus0), 'nn': (sPlus0, sMinus1)}, False)
+        sz0 = .5 * (c['up', 0].H.dot(c['up', 0]) - c['dn', 0].H.dot(c['dn', 0]))
+        sz1 = .5 * (c['up', 1].H.dot(c['up', 1]) - c['dn', 1].H.dot(c['dn', 1]))
+        chi_zz = DynamicObservable({'loc': (sz0, sz0), 'nn': (sz0, sz1)}, False)
         tetrahedron = GrandcanonicalEnsemble(h, beta, mu, verbose = False)
-        tetrahedron.setLehmannTermsDynamic(chi_pm)
-        chi_pm.setMesh(500, 0, 4)
+        tetrahedron.setLehmannTermsDynamic(chi_zz)
+        chi_zz.setMesh(500, 0, 4)
         lehmannParams = [[1,-1],[1,1],pi/beta]
-        results_mu.append([chi_pm.getMesh(), chi_pm.getCustom('loc', *lehmannParams).imag, chi_pm.getCustom('loc', *lehmannParams).real, chi_pm.getCustom('nn', *lehmannParams).imag, chi_pm.getCustom('nn', *lehmannParams).real])
+        results_mu.append([chi_zz.getMesh(), chi_zz.getCustom('loc', *lehmannParams).imag, chi_zz.getCustom('loc', *lehmannParams).real, chi_zz.getCustom('nn', *lehmannParams).imag, chi_zz.getCustom('nn', *lehmannParams).real])
     results.append(results_mu)
-save('chi_pm.npy', array(results))
+save('chi_zz.npy', array(results))

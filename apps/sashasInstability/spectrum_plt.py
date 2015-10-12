@@ -3,10 +3,10 @@ from matplotlib import pyplot as plt
 #from matplotlib_to_latex import set_poster_parameters as set_mpl
 
 a_u_beta = load('spectrum.npy')
-mus = [.26,.27,.28]
-u_inds = range(3)
-betas = array([10, 17, 20])
-beta_inds = range(3)
+mus = [.27]
+u_inds = range(1)
+betas = array([20])
+beta_inds = range(1)
 
 linestyles = ['solid', '--', ':']
 temperatures = 1./betas
@@ -35,8 +35,8 @@ for i, a_beta, mu in zip(range(len(a_u_beta)), a_u_beta, mus):
             else:
                 ax.plot([e]*2, [0,d], color = color, linestyle = linestyle)
             i += 1
-    ax.set_xlim(-.02,.05)
-    ax.set_ylim(0,5)
+    ax.set_xlim(left = -.5)
+    #ax.set_ylim(0,5)
 
 plt.legend(loc = 'upper right', title = '$T$')
 plt.tight_layout()

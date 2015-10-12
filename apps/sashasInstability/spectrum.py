@@ -3,11 +3,12 @@ from EasyED.hamiltonians import Hubbard
 from EasyED.util import report
 from numpy import load, save, array, where, linspace
 
-mus = [.26,.27,.28]
-betas = array([10, 17, 20])
+mus = [.27]
+betas = array([20])
 results = list()
+u = 3
 
-for mu in mus
+for mu in mus:
     t = -1
     r = .3
     results_u = list()
