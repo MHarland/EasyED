@@ -77,8 +77,14 @@ class BlockState(Blocks):
         return bdot(self, y)
 
 def bdot(x, y):
-    if len(x.shape) == 2:
+    assert len(x.shape) < 3 and len(y.shape) < 3, 'wrong shape'
+    if len(x.shape) == 2 and len(y.shape) == 2:
         result = BlockMatrix(x.blocksizes)
+    elif len(x.shape) == len(y.shape) == 1:
+        result = 0
+        for i in range(x.shape[0]):
+            result += x[i] * y[i]
+        return result
     else:
         result = BlockState(x.blocksizes)
     i = 0
