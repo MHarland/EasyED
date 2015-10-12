@@ -13,7 +13,9 @@ class SingleParticleBasis(object):
         statestr = str()
         for i, digit in enumerate(self.getOccupationRep(fockspaceNr)):
             if digit == '1':
-                statestr += ' c^'+str(self.orderedSingleParticleStates[i])
+                if i > 0:
+                    statestr += ' '
+                statestr += 'c^'+str(self.orderedSingleParticleStates[i])
         return statestr
 
     def getSingleParticleBasis(self):
