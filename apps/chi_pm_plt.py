@@ -2,7 +2,6 @@ from numpy import load, array
 from matplotlib import pyplot as plt
 from matplotlib_to_latex import set_poster_parameters as set_mpl
 
-<<<<<<< HEAD:apps/chi_pm_plt.py
 chi_u_beta = load('chi_pm.npy')
 us = [2.75, 3, 3.25]
 us = [1,3,4]
@@ -14,16 +13,6 @@ temperatures = 1./betas
 colors = [plt.cm.jet(i/float(len(betas)-1)) for i in range(len(betas))]
 linestyles = ['-', '--', '-.', ':']
 linestyles = ['-', '--', ':']
-=======
-chi_mu_beta = load('chi_pm.npy')
-mus = [.26,.27,.28]
-inds = [0,1,2]
-betas = array([20])
-temperatures = 1./betas
-colors = [plt.cm.jet(i/max(1,float(len(betas)-1))) for i in range(len(betas))]
-linestyles = ['-', '--', ':']
-linestyles = ['-']*3
->>>>>>> more calcs for s sys:apps/sashasInstability/chi_pm_plt.py
 xlims = [0,4]
 ylims1 = [0,1.5]
 ylims2 = [-.5,.2]
@@ -40,15 +29,9 @@ for i, chi_beta, mu in zip(range(len(chi_mu_beta)), chi_mu_beta, mus):
         ax.set_ylabel('$\chi^{loc}_{+-}(\omega)$')
         ax_exists = True
     else:
-<<<<<<< HEAD:apps/chi_pm_plt.py
         ax = fig.add_subplot(1,len(u_inds),ax_nr)#, sharey = ax)
         ax.set_yticks(yticks)
         ax.set_yticklabels([])
-=======
-        ax = fig.add_subplot(1,len(inds),ax_nr)#, sharey = ax)
-        #ax.set_yticks(yticks)
-        #ax.set_yticklabels([])
->>>>>>> more calcs for s sys:apps/sashasInstability/chi_pm_plt.py
     ax_nr += 1
     ax.set_title('$\mu = '+str(mu)+'$')
     ax.set_xlabel('$\omega$')
@@ -58,13 +41,8 @@ for i, chi_beta, mu in zip(range(len(chi_mu_beta)), chi_mu_beta, mus):
     ax.set_xlim(*xlims)
     ax.set_ylim(*ylims1)
     yticks = ax.get_yticks()
-<<<<<<< HEAD:apps/chi_pm_plt.py
     ax.set_xticklabels(xticklabels)
 plt.legend(loc = 'upper right', title = '$T$', bbox_to_anchor = [1.2,1])
-=======
-    #ax.set_xticklabels(xticklabels)
-plt.legend(loc = 'upper right', title = '$T$')
->>>>>>> more calcs for s sys:apps/sashasInstability/chi_pm_plt.py
 plt.tight_layout()
 plt.savefig('chi_pm_loc.pdf', dpi=300)
 plt.close()
@@ -81,15 +59,9 @@ for i, chi_beta, mu in zip(range(len(chi_mu_beta)), chi_mu_beta, mus):
         ax.set_ylabel('$\chi^{nn}_{+-}(\omega)$')
         ax_exists = True
     else:
-<<<<<<< HEAD:apps/chi_pm_plt.py
         ax = fig.add_subplot(1,len(u_inds),ax_nr)#,sharey = ax)
         ax.set_yticks(yticks)
         ax.set_yticklabels([])
-=======
-        ax = fig.add_subplot(1,len(inds),ax_nr)#,sharey = ax)
-        #ax.set_yticks(yticks)
-        #ax.set_yticklabels([])
->>>>>>> more calcs for s sys:apps/sashasInstability/chi_pm_plt.py
     ax_nr += 1
     ax.set_title('$\mu = '+str(mu)+'$')
     ax.set_xlabel('$\omega$')
@@ -99,13 +71,8 @@ for i, chi_beta, mu in zip(range(len(chi_mu_beta)), chi_mu_beta, mus):
     ax.set_xlim(*xlims)
     ax.set_ylim(*ylims2)
     yticks = ax.get_yticks()
-<<<<<<< HEAD:apps/chi_pm_plt.py
     ax.set_xticklabels(xticklabels)
 axes[0].legend(loc = 'lower left', title = '$T$')
-=======
-    #ax.set_xticklabels(xticklabels)
-axes[0].legend(loc = 'lower right', title = '$T$')
->>>>>>> more calcs for s sys:apps/sashasInstability/chi_pm_plt.py
 plt.tight_layout()
 plt.savefig('chi_pm_nn.pdf', dpi=300)
 plt.close()
