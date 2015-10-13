@@ -11,11 +11,13 @@ class SingleParticleBasis(object):
 
     def getStateAlgebraically(self, fockspaceNr):
         statestr = str()
+        firstOccupiedState = True
         for i, digit in enumerate(self.getOccupationRep(fockspaceNr)):
             if digit == '1':
-                if i > 0:
+                if not firstOccupiedState:
                     statestr += ' '
                 statestr += 'c^'+str(self.orderedSingleParticleStates[i])
+                firstOccupiedState = False
         return statestr
 
     def getSingleParticleBasis(self):
@@ -87,8 +89,7 @@ class SuperpositionState(SingleParticleBasis):
                     statestr += ' '
                 if coeff > 0:
                     statestr += '+'
-                statestr += str(coeff)[:7]
-                spstates = list()
+                statestr += str(coeff)[:7]+' '
                 statestr += SingleParticleBasis.getStateAlgebraically(self, i)
                 if linebreak:
                     statestr += '\n'

@@ -77,13 +77,14 @@ class Hamiltonian(SingleParticleBasis):
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getGroundStateEnergy(self):
-        return min(self.eigenEnergies)
+        #return min(self.eigenEnergies)
+        return self.energyShift
 
     def getGroundSuperpositionState(self, energyResolution = 10**(-10)):
         inds = list()
         gss = list()
         for i, e in enumerate(self.eigenEnergies):
-            if abs(e - self.getGroundStateEnergy()) < energyResolution:
+            if abs(e - 0) < energyResolution:
                 inds.append(i)
         for i in inds:
             psi0 = SuperpositionState(self.eigenStates.toarray()[:, i], self.singleParticleBasis)
@@ -123,7 +124,7 @@ class Hamiltonian(SingleParticleBasis):
     def getGroundStates(self, energyResolution = 10**(-10), threshold = .0001):
         groundStates = list()
         for psi in self.getGroundSuperpositionState(energyResolution):
-            groundStates.append(psi.getStateAlgebraically(threshold))
+            groundStates.append(psi)
         return groundStates
 
     def getEnergies(self, energyResolution = 10**(-10)):

@@ -8,7 +8,8 @@ import numpy
 from util import report
 
 numpy.set_printoptions(suppress=True)
-structure = Hubbard([[-4, -1], [-1, -4]], 8)
+structure = Hubbard([[0, -1], [-1, 0]], 0)
+structure = Hubbard([[-.5]], 1)
 
 report(structure.blocksizes)
 structure.solve()

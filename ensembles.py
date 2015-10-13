@@ -91,6 +91,12 @@ class CanonicalEnsemble(object):
 
     def setLehmannTermsDynamic(self, dynamicObservable):
         assert type(dynamicObservable) == DynamicObservable, 'Type DynamicObservable expected.'
+        if dynamicObservable.species == 'fermionic':
+            self.setLehmannTermsDynamicFermionic(dynamicObservable)
+        elif dynamicObservable.species == 'bosonic':
+            self.setLehmannTermsDynamicBosonic(dynamicObservable)
+
+    def setLehmannTermsDynamicFermionic(self, dynamicObservable):
         for statePair, operatorPair in dynamicObservable.operatorPairs.items():
             operator1 = operatorPair[0]
             operator2 = operatorPair[1]
@@ -109,6 +115,9 @@ class CanonicalEnsemble(object):
                 op2_n = operator2.dot(ve[:,n])
                 expn = exp(-self.beta*e[n])
                 for m in fockstates:
+                    if dynamicObservable.species == 'bosonic':
+                        if e[n] == e[m]:
+                            continue
                     el1 = n_op1.dot(ve[:,m])
                     if el1 != 0:
                         el2 = ve[:,m].dot(op2_n)
@@ -122,6 +131,37 @@ class CanonicalEnsemble(object):
             dynamicObservable.lehmannNominators.update({statePair: allgather_list(nominators_p)})
             dynamicObservable.lehmannDenominators.update({statePair: allgather_list(denominators_p)})
         dynamicObservable.partitionFunction = self.getPartitionFunction()
+
+    def setZeroFrequencyTerms(self, dynamicObservable):
+        for statePair, operatorPair in dynamicObservable.operatorPairs.items():
+            operator1 = operatorPair[0]
+            operator2 = operatorPair[1]
+            if type(operator1) != ndarray:
+                operator1 = operator1.toarray()
+                operator2 = operator2.toarray()
+            e = self.getEnergyEigenvalues()
+            ve = self.getEnergyEigenstates().toarray()
+            fockstates = range(self.fockspaceSize)
+
+            n_inds_p = array(scatter_list(fockstates))
+            zeroFrequencyTerms_p = []
+            for n in n_inds_p:
+                n_op1 = ve[:,n].dot(operator1)
+                op2_n = operator2.dot(ve[:,n])
+                expn = exp(-self.beta*e[n])
+                for m in fockstates:
+                    if e[n] == e[m]:
+                        el1 = n_op1.dot(ve[:,m])
+                        if el1 != 0:
+                            el2 = ve[:,m].dot(op2_n)
+                            if el2 != 0:
+                                el = el1*el2
+                                zeroFrequencyTerms_p.append(-self.beta*expn*el)
+            dynamicObservable.zeroFrequencyTerms.update({statePair: allgather_list(zeroFrequencyTerms_p)})
+
+    def setLehmannTermsDynamicBosonic(self, dynamicObservable):
+        self.setLehmannTermsDynamicFermionic(dynamicObservable)
+        self.setZeroFrequencyTerms(dynamicObservable)
 
     def calcG1(self, singleParticleStatePairs = None):
         c = AnnihilationOperator(self.singleParticleBasis)

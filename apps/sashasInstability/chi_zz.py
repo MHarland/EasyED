@@ -20,11 +20,11 @@ for mu in mus:
         c = AnnihilationOperator(h.singleParticleBasis)
         sz0 = .5 * (c['up', 0].H.dot(c['up', 0]) - c['dn', 0].H.dot(c['dn', 0]))
         sz1 = .5 * (c['up', 1].H.dot(c['up', 1]) - c['dn', 1].H.dot(c['dn', 1]))
-        chi_zz = DynamicObservable({'loc': (sz0, sz0), 'nn': (sz0, sz1)}, False)
+        chi_zz = DynamicObservable({'loc': (sz0, sz0), 'nn': (sz0, sz1)}, 'bosonic')
         tetrahedron = GrandcanonicalEnsemble(h, beta, mu, verbose = False)
         tetrahedron.setLehmannTermsDynamic(chi_zz)
-        chi_zz.setMesh(500, 0, 4)
-        lehmannParams = [[1,-1],[1,1],pi/beta]
+        chi_zz.setMesh(200, 0, 4)
+        lehmannParams = [pi/beta,[1,-1]]
         results_mu.append([chi_zz.getMesh(), chi_zz.getCustom('loc', *lehmannParams).imag, chi_zz.getCustom('loc', *lehmannParams).real, chi_zz.getCustom('nn', *lehmannParams).imag, chi_zz.getCustom('nn', *lehmannParams).real])
     results.append(results_mu)
 save('chi_zz.npy', array(results))

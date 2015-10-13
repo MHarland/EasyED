@@ -16,10 +16,12 @@ class StaticObservable(object):
         return self.expectationValue[state]
 
 class DynamicObservable(object):
-    def __init__(self, operatorPairs = dict(), verbose = False):
+    def __init__(self, operatorPairs = dict(), species = 'fermionic', verbose = False):
+        assert species in ['fermionic', 'bosonic'], 'type '+species+' no known.'
         self.operatorPairs = operatorPairs
         self.lehmannNominators = dict()
         self.lehmannDenominators = dict()
+        self.zeroFrequencyTerms = dict()
         self.mesh = None
         self.retardedData = dict()
         self.causalData = dict()
@@ -29,6 +31,7 @@ class DynamicObservable(object):
         self.partitionFunction = None
         self.verbose = verbose
         self.customData = dict()
+        self.species = species
 
     def addOperatorPair(self, statePair, operatorPair):
         self.operatorPairs.update({statePair: operatorPair})
@@ -39,7 +42,7 @@ class DynamicObservable(object):
 
     def getMesh(self):
         return self.mesh
-
+    """
     def setRetarded(self, imaginaryOffset = 0.1):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(retarded)...', self.verbose)
@@ -67,23 +70,26 @@ class DynamicObservable(object):
         else:
             self.setCausal()
             return self.causalData[statePair]
-
-    def setCustom(self, signature, coefficients, imaginaryOffset = 0.1):
+    """
+    def setCustom(self, imaginaryOffset, coefficients):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating custom function...', self.verbose)
         t0 = time()
-        self.customData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, signature, imaginaryOffset, coefficients))
-        report('took '+str(time()-t0)[:4]+' seconds', self.verbose)        
+        self.customData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, self.zeroFrequencyTerms, imaginaryOffset, coefficients))
+        report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
-    def getCustom(self, statePair, signature = [1, 1], coefficients = [1, 1], imaginaryOffset = 0.01):
+    def getCustom(self, statePair, imaginaryOffset = 0.01, coefficients = [1, 1]):
         if statePair in self.customData.keys():
             return self.customData[statePair]
         else:
-            self.setCustom(signature, coefficients, imaginaryOffset)
+            self.setCustom(imaginaryOffset, coefficients)
             return self.customData[statePair]
 
     def setMatsubaraMesh(self, nOmega, beta):
-        self.matsubaraMesh = array([complex(0, 2*n+1)*pi/beta for n in range(nOmega)])
+        if self.species == 'fermionic':
+            self.matsubaraMesh = array([complex(0, 2*n+1)*pi/beta for n in range(nOmega)])
+        elif self.species == 'bosonic':
+            self.matsubaraMesh = array([complex(0, 2*n)*pi/beta for n in range(nOmega)])
 
     def getMatsubaraMesh(self):
         return self.matsubaraMesh
@@ -92,7 +98,10 @@ class DynamicObservable(object):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(Matsubara)...', self.verbose)
         t0 = time()
-        self.matsubaraData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.matsubaraMesh, [+1, +1], 0, [+1, +1]))
+        if self.species == 'fermionic':
+            self.matsubaraData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.matsubaraMesh, self.zeroFrequencyTerms, 0, [+1, +1]))
+        if self.species == 'bosonic':
+            self.matsubaraData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.matsubaraMesh, self.zeroFrequencyTerms, 0, [+1, -1]))
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getMatsubara(self, statePair):
@@ -106,12 +115,16 @@ class DynamicObservable(object):
         """use explicit setRetarded to change the imaginary Offset"""
         return array([-1/pi *gret.imag for gret in self.getRetarded(statePair)])
     
-def lehmannSumDynamic(elementProducts, energyDifferences, partitionFunction, mesh, signature, imaginaryOffset, nominatorCoefficients):
+def lehmannSumDynamic(elementProducts, energyDifferences, partitionFunction, mesh, zeroFrequencyTerms, imaginaryOffset, nominatorCoefficients):
+    if type(imaginaryOffset) != list:
+        imaginaryOffset = [imaginaryOffset]*2
     result = dict()
     for statePair, nominators, denominators in zip(elementProducts.keys(), elementProducts.values(), energyDifferences.values()):
         data_p = list()
         for w in scatter_list(mesh):
-            terms = [coeff * nom/(w + denom + complex(0, imaginaryOffset)) for noms, denom in zip(nominators, denominators) for nom, coeff in zip(noms, nominatorCoefficients)]
+            terms = [coeff * nom/(w + denom + complex(0, offset)) for noms, denom in zip(nominators, denominators) for nom, coeff, offset in zip(noms, nominatorCoefficients, imaginaryOffset)]
+            if len(zeroFrequencyTerms.values()) > 0 and w == 0:
+                terms += zeroFrequencyTerms[statePair]
             data_p.append(nsum(terms/partitionFunction))
         result.update({statePair: array(allgather_list(data_p))})
     return result
