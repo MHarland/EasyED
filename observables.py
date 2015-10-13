@@ -42,12 +42,15 @@ class DynamicObservable(object):
 
     def getMesh(self):
         return self.mesh
-    """
-    def setRetarded(self, imaginaryOffset = 0.1):
+
+    def setRetarded(self, imaginaryOffset):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(retarded)...', self.verbose)
         t0 = time()
-        self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, [+1, +1], imaginaryOffset, [+1, +1]))
+        if self.species == 'fermionic':
+            self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, self.zeroFrequencyTerms, imaginaryOffset, [+1, +1]))
+        elif self.species == 'bosonic':
+            self.retardedData.update(lehmannSumDynamic(self.lehmannNominators, self.lehmannDenominators, self.partitionFunction, self.mesh, self.zeroFrequencyTerms, imaginaryOffset, [+1, -1]))
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getRetarded(self, statePair):
@@ -56,7 +59,7 @@ class DynamicObservable(object):
         else:
             self.setRetarded()
             return self.retardedData[statePair]
-
+    """
     def setCausal(self, imaginaryOffset = 0.1):
         assert self.partitionFunction != None and self.lehmannNominators != None and self.lehmannDenominators != None, 'Partition Function and Lehmann terms have to be set in advance.'
         report('Calculating one-particle Green\'s function(causal)...', self.verbose)

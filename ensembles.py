@@ -7,7 +7,7 @@ from operators import AnnihilationOperator
 from util import scatter_list, sumScatteredLists, report, allgather_list
 
 class CanonicalEnsemble(object):
-    def __init__(self, hamiltonian, beta, verbose = True):
+    def __init__(self, hamiltonian, beta, verbose = False):
         self.hamiltonian = hamiltonian
         self.singleParticleBasis = hamiltonian.singleParticleBasis
         self.orderedSingleParticleStates = hamiltonian.orderedSingleParticleStates
@@ -180,7 +180,7 @@ class CanonicalEnsemble(object):
 
 class GrandcanonicalEnsemble(CanonicalEnsemble):
     """use canonical with mu in H"""
-    def __init__(self, hamiltonian, beta, mu, verbose = True):
+    def __init__(self, hamiltonian, beta, mu, verbose = False):
         self.mu = mu
         CanonicalEnsemble.__init__(self, hamiltonian, beta, verbose)
         c = AnnihilationOperator(self.singleParticleBasis)
@@ -220,14 +220,6 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
 class MicrocanonicalEnsemble(CanonicalEnsemble):
     def __init__(self, hamiltonian):
         CanonicalEnsemble.__init__(self, hamiltonian, 0)
-        report('MicrocanonicalEnsemble has not been tested sufficiently yet')
-
-    #def getIndsForSum(self):
-    #    inds, = where(self.energyEigenvalues == self.energyEigenvalues.min())
-    #    print inds
-    #    return [(m, n) for m, n in product(inds, inds)]
 
     def calcPartitionFunction(self):
-        #inds, = where(self.energyEigenvalues == self.energyEigenvalues.min())
-        #self.partitionFunction = nsum([1 for eva in inds])
         self.partitionFunction = self.fockspaceSize
