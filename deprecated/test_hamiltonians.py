@@ -1,14 +1,17 @@
+from EasyED.hamiltonians import Hubbard
+from EasyED.operators import AnnihilationOperator
+from EasyED.util import report
+
 from itertools import product
-from hamiltonians import Hubbard
-from operators import AnnihilationOperator
 from matplotlib import pyplot as plt
 from numpy import array, sqrt, sort, arange
 import numpy
 
-from util import report
+
 
 numpy.set_printoptions(suppress=True)
-structure = Hubbard([[0, -1], [-1, 0]], 0)
+structure = Hubbard([[.5, 0], [0, .5]], 1)
+c = AnnihilationOperator(structure.getSingleParticleBasis())
 
 report(structure.blocksizes)
 structure.solve()
@@ -29,7 +32,6 @@ for energyGroup, energy in zip(structure.getStatesEnergySortedAlgebraically(), s
         print
     print
 
-c = AnnihilationOperator(structure.getSingleParticleBasis())
 sz_tot = .5 * (c['up', 0].H.dot(c['up', 0]) - c['dn', 0].H.dot(c['dn', 0])) + .5 * (c['up', 1].H.dot(c['up', 1]) - c['dn', 1].H.dot(c['dn', 1]))
 chi_zz_tot = sz_tot.dot(sz_tot)
 print 'corresponding S2_tot qnrs:'
@@ -56,6 +58,9 @@ plt.tight_layout()
 plt.savefig('testSpectrum.pdf', dpi=300)
 plt.close()
 
+#sz_1 = .5 * (c['up', 0].H.dot(c['up', 0]) - c['dn', 0].H.dot(c['dn', 0]))
+#sz_2 = .5 * (c['up', 1].H.dot(c['up', 1]) - c['dn', 1].H.dot(c['dn', 1]))
+#chi_zz_tot = sz_1.dot(sz_1) + sz_2.dot(sz_2)
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 energies, degeneracies = structure.getSpectrumEnergySorted()

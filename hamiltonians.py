@@ -6,7 +6,7 @@ from time import time
 
 from blocks import BlockMatrix
 from operators import SingleParticleBasis, AnnihilationOperator, SuperpositionState
-from util import scatter_list, allgather_list, report, contains, getIndex
+from util import scatter_list, allgather_list, report, contains, getIndex, equals
 
 class Hamiltonian(SingleParticleBasis):
     def __init__(self, singleParticleBasis, matrix, verbose = False):
@@ -228,7 +228,7 @@ def embedV(subspaceVectors, blocksizes):
     data = list()
     for i, v in enumerate(subspaceVectors):
         for j, vj in enumerate(v):
-            if vj != 0:
+            if not equals(vj, 0):
                 y.append(j + iBlockOrigin) # TODO understand row/col exchange
                 x.append(i)
                 data.append(vj)

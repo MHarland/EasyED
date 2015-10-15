@@ -4,7 +4,7 @@ from scipy.optimize import bisect
 from time import time
 from observables import StaticObservable, DynamicObservable
 from operators import AnnihilationOperator
-from util import scatter_list, sumScatteredLists, report, allgather_list
+from util import scatter_list, sumScatteredLists, report, allgather_list, equals
 
 class CanonicalEnsemble(object):
     def __init__(self, hamiltonian, beta, verbose = False):
@@ -36,7 +36,7 @@ class CanonicalEnsemble(object):
             for n in n_inds_p:
                 el = ve[:,n].dot(m.dot(ve[:,n]))
                 expn = exp(-self.beta*e[n])
-                if el != 0 and expn != 0:
+                if not equals(el, 0) and not equals(expn, 0):
                     terms_p.append(expn * el)
             staticObservable.expectationValue.update({index: sumScatteredLists(terms_p)/z})
 
@@ -116,12 +116,12 @@ class CanonicalEnsemble(object):
                 expn = exp(-self.beta*e[n])
                 for m in fockstates:
                     if dynamicObservable.species == 'bosonic':
-                        if e[n] == e[m]:
+                        if equals(e[n], e[m]):
                             continue
                     el1 = n_op1.dot(ve[:,m])
-                    if el1 != 0:
+                    if not equals(el1, 0):
                         el2 = ve[:,m].dot(op2_n)
-                        if el2 != 0:
+                        if not equals(el2, 0):
                             expm = exp(-self.beta*e[m])
                             el = el1*el2
                             nominators_p.append([])
@@ -150,11 +150,11 @@ class CanonicalEnsemble(object):
                 op2_n = operator2.dot(ve[:,n])
                 expn = exp(-self.beta*e[n])
                 for m in fockstates:
-                    if e[n] == e[m]:
+                    if equals(e[n], e[m]):
                         el1 = n_op1.dot(ve[:,m])
-                        if el1 != 0:
+                        if not equals(el1, 0):
                             el2 = ve[:,m].dot(op2_n)
-                            if el2 != 0:
+                            if not equals(el2, 0):
                                 el = el1*el2
                                 zeroFrequencyTerms_p.append(-self.beta*expn*el)
             dynamicObservable.zeroFrequencyTerms.update({statePair: allgather_list(zeroFrequencyTerms_p)})

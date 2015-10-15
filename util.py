@@ -1,5 +1,5 @@
 from mpi4py import MPI as mpi
-from numpy import array, dot as ndot, identity, matrix, sum as nsum
+from numpy import array, dot as ndot, identity, matrix, sum as nsum, allclose
 
 def diracDelta(x, y):
     return int(x == y)
@@ -61,3 +61,5 @@ def getIndex(numberList, number, accuracy):
             return i
     return None
         
+def equals(x, y):
+    return allclose(x, y)

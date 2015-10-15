@@ -22,6 +22,8 @@ class TestEnsembles(unittest.TestCase):
         ensemble = GrandcanonicalEnsemble(h, 1, .5)
         ensemble.calcOccupation()
         self.assertEqual(ensemble.getTotalOccupation(), 2)
+        for state in h.orderedSingleParticleStates:
+            self.assertAlmostEqual(ensemble.occupation.getExpectationValue(state), .5)
 
     def runMuByFillingEstimation(self):
         h = Hubbard([[0, -1], [-1, 0]], 1)
@@ -37,7 +39,8 @@ class TestEnsembles(unittest.TestCase):
         ensemble.calcG1([statePair])
         ensemble.g1.setMesh(100, -2, 2)
         ensemble.g1.setRetarded(numpy.pi)
+        a = ensemble.g1.getSpectralFunction(statePair)
+        ensemble.g1.setMatsubaraMesh(20, 1)
+        ensemble.g1.setMatsubara()
+        giw = ensemble.g1.getMatsubara(statePair)
         #TODO need numerical data to benchmark
-
-    
-        

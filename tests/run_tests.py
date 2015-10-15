@@ -16,5 +16,6 @@ suite.addTest(TestEnsembles('runMicrocanonicalHubbardDimer'))
 suite.addTest(TestEnsembles('runCanonicalHubbardDimer'))
 suite.addTest(TestEnsembles('runGrandcanonicalHubbardDimer'))
 suite.addTest(TestEnsembles('runMuByFillingEstimation'))
+suite.addTest(TestEnsembles('runG1Calculation'))
 print
 unittest.TextTestRunner(verbosity=2).run(suite)
