@@ -2,7 +2,7 @@ from numpy import load, array, pi
 from matplotlib import pyplot as plt
 #from matplotlib_to_latex import set_poster_parameters as set_mpl
 
-chi_u_beta = load('chi_zz.npy')
+chi_u_beta = load('chi_c.npy')
 betas = array([5, 10])
 us = [2.75,3,3.25]
 temperatures = 1./betas
@@ -24,7 +24,7 @@ for j, transition  in enumerate(['loc', 'nn']):
         if not i in inds: continue
         if not ax_exists:
             ax = fig.add_subplot(1,len(inds),ax_nr)
-            ax.set_ylabel('$\chi^{'+transition+'}_{zz}(\omega)$')
+            ax.set_ylabel('$\chi^{'+transition+'}_{c}(\omega)$')
             ax_exists = True
         else:
             ax = fig.add_subplot(1,len(inds),ax_nr)#, sharey = ax)
@@ -34,7 +34,7 @@ for j, transition  in enumerate(['loc', 'nn']):
         ax.set_title('$U = '+str(u)+'$')
         ax.set_xlabel('$\omega$')
         for chi, beta, color, ls in zip(chi_beta[::-1], betas[::-1], colors, linestyles):
-            ax.plot(chi[0,:], -4*chi[1+2*j,:]/pi, label = str(1./beta)[:6], color = color, linestyle = ls)
+            ax.plot(chi[0,:], -chi[1+2*j,:]/pi, label = str(1./beta)[:6], color = color, linestyle = ls)
             #ax.scatter(chi[0, chi[2,:].argmin()], chi[2,:].min(), color = color, marker = '+')
         #ax.set_xlim(*xlims)
         #ax.set_ylim(*ylims1)
@@ -42,5 +42,5 @@ for j, transition  in enumerate(['loc', 'nn']):
         #ax.set_xticklabels(xticklabels)
     plt.legend(loc = 'upper right', title = '$T$')
     plt.tight_layout()
-    plt.savefig('chi_zz_'+transition+'.pdf', dpi=300)
+    plt.savefig('chi_c_'+transition+'.pdf', dpi=300)
     plt.close()
