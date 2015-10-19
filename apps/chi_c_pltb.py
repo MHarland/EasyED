@@ -4,12 +4,14 @@ from matplotlib import pyplot as plt
 
 chi_u_beta = load('chi_c.npy')
 betas = array([10,15,20,25,30])
+#betas = array([10,69,70,86,87])
 us = [2.75,3,3.25]
 temperatures = 1./betas
 inds = [0,1,2]
 colors = [plt.cm.jet(i/float(max(len(betas), 2)-1)) for i in range(len(betas))]
 xlims = [0,8]
 ylims = [-.1,.4]
+#ylims = [-1,2]
 xticklabels = [0,'',1,'',2,'',3,'',4]
 
 #set_mpl()

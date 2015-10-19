@@ -6,9 +6,11 @@ a_u_beta = load('spectral_function.npy')
 us = [2.75, 3, 3.25]
 u_inds = range(3) # indices of us that will be plotted
 betas = array([10, 15, 20, 25, 30])
+#betas = array([10,69,70,86,87])
 temperatures = 1./betas
 colors = [plt.cm.jet(float(i)/max(float(len(betas)-1),1)) for i in range(len(betas))]
 ylims = [0, 1.2]
+#ylims = [0, 3.5]
 
 #set_mpl()
 fig = plt.figure()

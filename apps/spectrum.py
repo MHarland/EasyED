@@ -3,9 +3,10 @@ from EasyED.hamiltonians import Hubbard
 from EasyED.util import report
 from numpy import load, save, array, where, linspace
 
-us = [1,3,4]
+us = [2.75,3,3.25]
 fnames = ['beta_mu_u'+str(u)+'.npy' for u in us]
-betas = array([10, 100, 200, 400])
+betas = array([10, 15, 20, 25, 30])
+#betas = array([10,69,70,86,87])
 results = list()
 
 for u, fname in zip(us, fnames):

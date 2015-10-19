@@ -6,6 +6,7 @@ from EasyED.util import report
 from numpy import load, save, array, where, pi
 
 betas = array([10, 15, 20, 25, 30])
+#betas = array([10,69,70,86,87])
 us = [2.75,3,3.25]
 fnames = ['beta_mu_u'+str(u)+'.npy' for u in us]
 t = -1
@@ -25,7 +26,7 @@ for u, fname in zip(us, fnames):
         chi_zz = DynamicObservable({'loc': (sz0, sz0), 'nn': (sz0, sz1)}, 'bosonic')
         tetrahedron = GrandcanonicalEnsemble(h, beta, mu, verbose = False)
         tetrahedron.setLehmannTermsDynamic(chi_zz)
-        chi_zz.setMesh(100, 0, 8)
+        chi_zz.setMesh(400, 0, 8)
         lehmannParams = [pi/beta,[1,-1]]
         results_u.append([chi_zz.getMesh(), chi_zz.getCustom('loc', *lehmannParams).imag, chi_zz.getCustom('loc', *lehmannParams).real, chi_zz.getCustom('nn', *lehmannParams).imag, chi_zz.getCustom('nn', *lehmannParams).real])
     results.append(results_u)
