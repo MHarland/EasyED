@@ -61,5 +61,5 @@ def getIndex(numberList, number, accuracy):
             return i
     return None
         
-def equals(x, y):
-    return allclose(x, y)
+def equals(x, y, *args, **kwargs):
+    return allclose(x, y, *args, **kwargs)

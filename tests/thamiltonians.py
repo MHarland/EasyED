@@ -1,6 +1,6 @@
 from EasyED.hamiltonians import Hubbard
 from EasyED.operators import AnnihilationOperator
-from EasyED.util import report
+from EasyED.util import report, equals
 
 import numpy
 import unittest
@@ -8,7 +8,6 @@ import unittest
 class TestHamiltonians(unittest.TestCase):
 
     def runSpectrumComparisonWithSasha(self):
-        almostZero = 10**(-10)
         mu = .27
         beta = 20
         results = list()
@@ -23,7 +22,7 @@ class TestHamiltonians(unittest.TestCase):
         for j, eS in enumerate(energiesSasha):
             energyFound = False
             for i, e in enumerate(energies):
-                if abs(eS - e) < almostZero:
+                if equals(eS, e):
                     energyFound = True
                     del energies[i]
                     break
@@ -50,3 +49,22 @@ class TestHamiltonians(unittest.TestCase):
         n_tot_hat = numpy.sum([c[s,0].H.dot(c[s,0]) for s in ['up', 'dn']], axis = 0)
         self.assertEqual(h.getGroundStates()[0].getQuantumNumber(n_tot_hat), 1)
         self.assertEqual(h.getGroundStates()[1].getQuantumNumber(n_tot_hat), 1)
+
+    def runEigenstatesEquation(self):
+        mu = .27
+        beta = 20
+        results = list()
+        u = 3
+        t = -1
+        r = .3
+        h = Hubbard([[-mu,t,t,r],[t,-mu,r,t],[t,r,-mu,t],[r,t,t,-mu]], u, verbose = False)
+        h.solve()
+        hmatrix = h.matrix
+        statesMatrix = h.eigenStates.toarray()
+        for i in range(256):
+            e = h.eigenEnergies[i] + h.energyShift
+            ve = statesMatrix[:, i]
+            eve = hmatrix.dot(ve)
+            zeros = eve - e*ve
+            for zero in zeros:
+                self.assertTrue(equals(zero, 0, rtol=1e-05, atol=1e-12)) #max abs tolerance with scipy.linalg.eigh for that system
