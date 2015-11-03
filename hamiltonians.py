@@ -170,7 +170,7 @@ class Hubbard(Hamiltonian):
         self.siteSpaceTransformation = siteSpaceTransformation
         report('Setting up the Hubbard Hamiltonian...', self.verbose)
         t0 = time()
-        hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites)
+        hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites, siteSpaceTransformation)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
         Hamiltonian.__init__(self, [self.spins, self.sites], hubbardMatrix, self.verbose)
 
@@ -186,7 +186,7 @@ class Hubbard(Hamiltonian):
 
     def solve(self):
         Hamiltonian.solve(self)
-
+"""
 def setHubbardMatrix(t, u, spins, orbitals):
     spins = range(len(spins))
     c = AnnihilationOperator([spins, orbitals])
@@ -197,7 +197,7 @@ def setHubbardMatrix(t, u, spins, orbitals):
     hu = [.5 * u * c[s1,i].H.dot(c[s1, i]).dot(c[s2, i].H).dot(c[s2, i]) for i in orbitals for s1, s2 in product(spins, spins) if s1 != s2]
     return nsum(ht + hu, axis = 0)
 """
-def setHubbardMatrixTransf(t, u, spins, orbitals, siteSpaceTransformation = None): # TODO rm siteSTrafo
+def setHubbardMatrix(t, u, spins, orbitals, siteSpaceTransformation = None): # TODO rm siteSTrafo
     spins = range(len(spins))
     c = AnnihilationOperator([spins, orbitals])
     no = len(orbitals)
@@ -216,7 +216,7 @@ def setHubbardMatrixTransf(t, u, spins, orbitals, siteSpaceTransformation = None
     ht = [t[i,j] * c[s,i].H.dot(c[s,j]) for s in spins for i,j in product(orbitals, orbitals) if t[i,j] != 0]
     hu = [uMatrix[i, j, k, l, s1, s2] * c[s1,i].H.dot(c[s2, j].H).dot(c[s2, l]).dot(c[s1, k]) for i,j,k,l in product(orbitals, orbitals, orbitals, orbitals) for s1, s2 in product(spins, spins) if s1 != s2 and uMatrix[i, j, k, l, s1, s2] != 0]
     return nsum(ht + hu, axis = 0)
-"""
+
 def embedV(subspaceVectors, blocksizes):
     fockspaceSize = nsum(blocksizes)
     assert fockspaceSize == len(subspaceVectors), 'embedding will fail'
