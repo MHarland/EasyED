@@ -9,7 +9,7 @@ from operators import SingleParticleBasis, AnnihilationOperator, SuperpositionSt
 from util import scatter_list, allgather_list, report, contains, getIndex, equals
 
 class Hamiltonian(SingleParticleBasis):
-    def __init__(self, singleParticleBasis, matrix, verbose = False):
+    def __init__(self, singleParticleBasis, matrix, verbose = False, all_real = True):
         self.matrix = matrix
         SingleParticleBasis.__init__(self, singleParticleBasis)
         self.eigenEnergies = None
@@ -20,6 +20,7 @@ class Hamiltonian(SingleParticleBasis):
                                           (range(self.fockspaceSize),
                                            range(self.fockspaceSize))))
         self.energyShift = None
+        self.all_real = all_real
 
     def getNEigenvalues(self):
         fockstates = arange(self.fockspaceSize)
@@ -58,7 +59,7 @@ class Hamiltonian(SingleParticleBasis):
         self.eigenStates = list()
         self.gatherPermutations()
         self.matrix = self.transformation.dot(self.matrix).dot(self.transformation.H)
-        hBlocks = BlockMatrix(self.blocksizes)
+        hBlocks = BlockMatrix(self.blocksizes, self.all_real)
         rows, cols = self.matrix.nonzero()
         for val, i, j in izip(self.matrix.data, rows, cols):
             hBlocks[i, j] = val

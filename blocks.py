@@ -41,10 +41,13 @@ class Blocks(object):
         return self.datablocks[blockNr]
 
 class BlockMatrix(Blocks):
-    def __init__(self, blocksizes):
+    def __init__(self, blocksizes, all_real = True):
         Blocks.__init__(self, blocksizes)
         for size in blocksizes:
-            self.datablocks.append(asmatrix(zeros([size, size])))
+            if all_real:
+                self.datablocks.append(asmatrix(zeros([size, size])))
+            else:
+                self.datablocks.append(asmatrix(zeros([size, size], dtype=complex)))
         self.shape = [nsum(blocksizes)]*2
 
     def __setitem__(self, key, item):
