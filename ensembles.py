@@ -186,6 +186,7 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
         c = AnnihilationOperator(self.singleParticleBasis)
         muMatrix = mu * nsum([c[orb].H.dot(c[orb]) for orb in self.orderedSingleParticleStates], axis = 0)
         self.hamiltonian.matrix = self.hamiltonian.matrix - muMatrix
+        self.filling = None
 
     def setMu(self, mu):
         c = AnnihilationOperator(self.singleParticleBasis)
@@ -211,6 +212,7 @@ class GrandcanonicalEnsemble(CanonicalEnsemble):
             fillingTrial = self.getTotalOccupation()
             self.hamiltonian.matrix = self.hamiltonian.matrix + muTrial * nMatrix
             report('Filling(mu='+str(muTrial)+') = '+str(fillingTrial), self.verbose)
+            self.filling = fillingTrial
             return fillingTrial - filling
         mu = bisect(fillingFunction, muMin, muMax, xtol = muTol, maxiter = maxiter)
         self.mu = mu
