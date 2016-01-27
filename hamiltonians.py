@@ -162,7 +162,7 @@ class Hamiltonian(SingleParticleBasis):
 
 
 class Hubbard(Hamiltonian):
-    def __init__(self, t, u, siteSpaceTransformation = None, verbose = False):
+    def __init__(self, t, u, siteSpaceTransformation = None, transformationLabels = None, verbose = False):
         self.verbose = verbose
         self.t = array(t)
         self.u = u
@@ -173,7 +173,11 @@ class Hubbard(Hamiltonian):
         t0 = time()
         hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites, siteSpaceTransformation)
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
-        Hamiltonian.__init__(self, [self.spins, self.sites], hubbardMatrix, self.verbose)
+        if transformationLabels == None:
+            orbitals = self.sites
+        else:
+            orbitals =  transformationLabels
+        Hamiltonian.__init__(self, [self.spins, orbitals], hubbardMatrix, self.verbose)
 
     def getNsEigenvalues(self):
         fockstates = arange(self.fockspaceSize)
