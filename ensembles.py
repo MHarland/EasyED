@@ -64,21 +64,21 @@ class CanonicalEnsemble(object):
         report('took '+str(time()-t0)[:4]+' seconds', self.verbose)
 
     def getPartitionFunction(self):
-        if self.partitionFunction != None:
+        if self.partitionFunction is not None:
             return self.partitionFunction
         else:
             self.calcPartitionFunction()
             return self.partitionFunction
 
     def getEnergyEigenstates(self):
-        if self.energyEigenstates != None:
+        if self.energyEigenstates is not None:
             return self.energyEigenstates
         else:
             self.calcEigensystem()
             return self.energyEigenstates
 
     def getEnergyEigenvalues(self):
-        if self.energyEigenvalues != None:
+        if self.energyEigenvalues is not None:
             return self.energyEigenvalues
         else:
             self.calcEigensystem()
