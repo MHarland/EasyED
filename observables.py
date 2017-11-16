@@ -38,7 +38,7 @@ class DynamicObservable(object):
 
     def setMesh(self, nOmega, omegaMin, omegaMax):
         assert omegaMin <= 0 and omegaMax > 0, 'Choose omegaMin <= 0 < omegaMax.'
-        self.mesh = array([omegaMin + w*(omegaMax-omegaMin)/float(nOmega-1) for w in range(nOmega)])
+        self.mesh = array([omegaMin + w*(omegaMax-omegaMin)/max(1,float(nOmega-1)) for w in range(nOmega)])
 
     def getMesh(self):
         return self.mesh
