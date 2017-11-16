@@ -84,8 +84,8 @@ class CanonicalEnsemble(object):
             self.calcEigensystem()
             return self.energyEigenvalues
 
-    def calcEigensystem(self):
-        self.hamiltonian.solve()
+    def calcEigensystem(self, *args, **kwargs):
+        self.hamiltonian.solve(*args, **kwargs)
         self.energyEigenstates = self.hamiltonian.eigenStates
         self.energyEigenvalues = self.hamiltonian.eigenEnergies
 
