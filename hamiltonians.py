@@ -21,6 +21,7 @@ class Hamiltonian(SingleParticleBasis):
                                            range(self.fockspaceSize))))
         self.energyShift = None
         self.all_real = all_real
+        self.matrix_sorted = None
 
     def getNEigenvalues(self):
         fockstates = arange(self.fockspaceSize)
@@ -30,7 +31,7 @@ class Hamiltonian(SingleParticleBasis):
 
     def sortSubspaceByPermutation(self, eigenvalues):
         sortedFockstates = list()
-
+        
         fockstate = 0
         for blocklength in self.blocksizes:
             found = list()
@@ -52,17 +53,21 @@ class Hamiltonian(SingleParticleBasis):
     def gatherPermutations(self):
         self.sortSubspaceByPermutation(self.getNEigenvalues())
         
-    def solve(self):
+    def solve(self, store_sorted_matrix = False):
         report('Solving the Hamiltonian...', self.verbose)
         t0 = time()
         self.eigenEnergies = list()
         self.eigenStates = list()
         self.gatherPermutations()
         self.matrix = self.transformation.dot(self.matrix).dot(self.transformation.H)
+        if store_sorted_matrix:
+            self.matrix_sorted = self.matrix.copy()
         hBlocks = BlockMatrix(self.blocksizes, self.all_real)
         rows, cols = self.matrix.nonzero()
         for val, i, j in izip(self.matrix.data, rows, cols):
             hBlocks[i, j] = val
+        #print dir(hBlocks)
+        #print hBlocks.getBlock(4)
         hBlocks_scat = scatter_list(hBlocks.datablocks)
         e_scat = list()
         v_scat = list()
@@ -162,13 +167,19 @@ class Hamiltonian(SingleParticleBasis):
 
 
 class Hubbard(Hamiltonian):
-    def __init__(self, t, u, siteSpaceTransformation = None, transformationLabels = None, verbose = False):
+    """
+    sp_basis must have spins first, then sites
+    """
+    def __init__(self, t, u, siteSpaceTransformation = None, transformationLabels = None, verbose = False, n_is_quantumnr = True, sz_is_quantumnr = True, parity_is_quantumnr = False, sp_basis = None):
         self.verbose = verbose
         self.t = array(t)
         self.u = u
         self.spins = ['up', 'dn']
         self.sites = range(len(t))
         self.siteSpaceTransformation = siteSpaceTransformation
+        self.n_is_quantumnr = n_is_quantumnr
+        self.sz_is_quantumnr = sz_is_quantumnr
+        self.parity_is_quantumnr = parity_is_quantumnr
         report('Setting up the Hubbard Hamiltonian...', self.verbose)
         t0 = time()
         hubbardMatrix = setHubbardMatrix(self.t, self.u, self.spins, self.sites, siteSpaceTransformation)
@@ -177,20 +188,35 @@ class Hubbard(Hamiltonian):
             orbitals = self.sites
         else:
             orbitals =  transformationLabels
-        Hamiltonian.__init__(self, [self.spins, orbitals], hubbardMatrix, self.verbose)
+        if sp_basis is None:
+            sp_basis = [self.spins, orbitals]
+        Hamiltonian.__init__(self, sp_basis, hubbardMatrix, self.verbose)
 
-    def getNsEigenvalues(self):
+    def getSzEigenvalues(self):
         fockstates = arange(self.fockspaceSize)
         fockstates = self.transformation.dot(fockstates)
-        nsEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockstate)[:int(self.nrOfSingleParticleStates*.5)] if digit == '1']) for fockstate in fockstates]
-        return nsEigenvalues
+        szEigenvalues = [.5*(nsum([1 for digit in self.getOccupationRep(fockstate)[:int(self.nrOfSingleParticleStates*.5)] if digit == '1']) - nsum([1 for digit in self.getOccupationRep(fockstate)[int(self.nrOfSingleParticleStates*.5):] if digit == '1'])) for fockstate in fockstates]
+        return szEigenvalues
 
+    def getParityEigenvalues(self):
+        fockstates = arange(self.fockspaceSize)
+        fockstates = self.transformation.dot(fockstates)
+        pEigenvalues = [nsum([1 for digit in self.getOccupationRep(fockstate) if digit == '1'])%2 for fockstate in fockstates]
+        return pEigenvalues
+    
     def gatherPermutations(self):
-        Hamiltonian.gatherPermutations(self)
-        self.sortSubspaceByPermutation(self.getNsEigenvalues())
+        if self.n_is_quantumnr:
+            Hamiltonian.gatherPermutations(self)
+        if self.parity_is_quantumnr:
+            self.sortSubspaceByPermutation(self.getParityEigenvalues())
+        if self.sz_is_quantumnr:
+            self.sortSubspaceByPermutation(self.getSzEigenvalues())
 
-    def solve(self):
-        Hamiltonian.solve(self)
+"""
+    def solve(self, *args, **kwargs):
+        Hamiltonian.solve(self, *args, **kwargs)
+"""
+
 """
 def setHubbardMatrix(t, u, spins, orbitals):
     spins = range(len(spins))
@@ -202,6 +228,52 @@ def setHubbardMatrix(t, u, spins, orbitals):
     hu = [.5 * u * c[s1,i].H.dot(c[s1, i]).dot(c[s2, i].H).dot(c[s2, i]) for i in orbitals for s1, s2 in product(spins, spins) if s1 != s2]
     return nsum(ht + hu, axis = 0)
 """
+
+class Hubbard2(Hubbard):
+    """
+    This class uses the single particle basis sites x spins, which is uncommon, but nessecary for the calculation of the reduced density matrix
+    sp_basis must have sites first then spins
+    """
+    def __init__(self, t, u, verbose = False, n_is_quantumnr = True, sz_is_quantumnr = True, parity_is_quantumnr = False, sp_basis = None):
+        self.verbose = verbose
+        self.t = array(t)
+        self.u = u
+        self.spins = range(2)#['up', 'dn']
+        self.sites = range(len(t))
+        self.n_is_quantumnr = n_is_quantumnr
+        self.sz_is_quantumnr = sz_is_quantumnr
+        self.parity_is_quantumnr = parity_is_quantumnr
+        no = len(self.sites)
+        ns = len(self.spins)
+        if sp_basis is None:
+            c = AnnihilationOperator([self.sites, self.spins])
+            sp_basis = [self.sites, self.spins]
+        else:
+            c = AnnihilationOperator([sp_basis[0], sp_basis[1]])
+        uMatrix = zeros([no,no,no,no,ns,ns])
+        for i, j, k, l, s1, s2 in product(*([self.sites]*4 + [self.spins]*2)):
+            if i == k and j == l and i == j and s1 != s2:
+                uMatrix[i, j, k, l, s1, s2] = u * .5
+        t = array(t)
+        ht = [t[i,j] * c[i,s].H.dot(c[j,s]) for s in self.spins for i,j in product(*[self.sites]*2) if t[i,j] != 0]
+        hu = [uMatrix[i, j, k, l, s1, s2] * c[i,s1].H.dot(c[j,s2].H).dot(c[l,s2]).dot(c[k,s1]) for i,j,k,l in product(*[self.sites]*4) for s1, s2 in product(*[self.spins]*2) if s1 != s2 and uMatrix[i, j, k, l, s1, s2] != 0]
+        hubbardMatrix = nsum(ht + hu, axis = 0)
+        Hamiltonian.__init__(self, sp_basis, hubbardMatrix, self.verbose)
+
+    def getSzEigenvalues(self):
+        fockstates = arange(self.fockspaceSize)
+        fockstates = self.transformation.dot(fockstates)
+        szEigenvalues = [.5*(nsum([1 for digit in self.getOccupationRep(fockstate)[::2] if digit == '1']) - nsum([1 for digit in self.getOccupationRep(fockstate)[1::2] if digit == '1'])) for fockstate in fockstates]
+        return szEigenvalues
+
+    def gatherPermutations(self):
+        if self.sz_is_quantumnr:
+            self.sortSubspaceByPermutation(self.getSzEigenvalues())
+        if self.n_is_quantumnr:
+            Hamiltonian.gatherPermutations(self)
+        if self.parity_is_quantumnr:
+            self.sortSubspaceByPermutation(self.getParityEigenvalues())
+    
 def setHubbardMatrix(t, u, spins, orbitals, siteSpaceTransformation = None): # TODO rm siteSTrafo
     spins = range(len(spins))
     c = AnnihilationOperator([spins, orbitals])
@@ -212,7 +284,7 @@ def setHubbardMatrix(t, u, spins, orbitals, siteSpaceTransformation = None): # T
     for i, j, k, l, s1, s2 in product(orbitals,orbitals,orbitals,orbitals,spins,spins):
         if i == k and j == l and i == j and s1 != s2:
             uMatrix[i, j, k, l, s1, s2] = u * .5
-    if siteSpaceTransformation != None:
+    if siteSpaceTransformation is not None:
         p = array(siteSpaceTransformation)
         t = p.transpose().dot(t).dot(p)
         temp = uMatrix.copy()
